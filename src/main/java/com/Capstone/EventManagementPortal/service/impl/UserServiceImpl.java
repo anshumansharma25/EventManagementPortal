@@ -1,5 +1,6 @@
 package com.Capstone.EventManagementPortal.service.impl;
 
+import com.Capstone.EventManagementPortal.model.Role;
 import com.Capstone.EventManagementPortal.model.User;
 import com.Capstone.EventManagementPortal.repository.UserRepository;
 import com.Capstone.EventManagementPortal.service.UserService;
@@ -46,4 +47,34 @@ public class UserServiceImpl implements UserService {
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    @Override
+    public User updateUser(Long id, User userDetails, String loggedInEmail) {
+        User loggedInUser = userRepository.findByEmail(loggedInEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Allow if admin or updating own profile
+        if (loggedInUser.getRole() == Role.ADMIN || loggedInUser.getId().equals(id)) {
+            user.setUsername(userDetails.getUsername());
+            user.setEmail(userDetails.getEmail());
+            return userRepository.save(user);
+        }
+        throw new RuntimeException("Unauthorized to update user");
+    }
+
+    @Override
+    public void deleteUser(Long id, String loggedInEmail) {
+        User loggedInUser = userRepository.findByEmail(loggedInEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (loggedInUser.getRole() != Role.ADMIN) {
+            throw new RuntimeException("Unauthorized to delete user");
+        }
+
+        userRepository.deleteById(id);
+    }
+
 }
