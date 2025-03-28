@@ -1,12 +1,12 @@
 package com.Capstone.EventManagementPortal.repository;
 
-import com.Capstone.EventManagementPortal.model.Event;
+import com.Capstone.EventManagementPortal.model.Booking;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface EventRepository extends JpaRepository<Event, Long> {
-    List<Event> findByOrganizerId(Long organizerId);  // Custom method to fetch events by organizer
-    List<Event> findByLocation(String location);
+public interface BookingRepository extends JpaRepository<Booking, Long> {
+    List<Booking> findByUserId(Long userId);  // Get all registrations by user
+    List<Booking> findByEventId(Long eventId); // Get all users registered for an event
 }
