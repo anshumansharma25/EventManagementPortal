@@ -1,6 +1,7 @@
 package com.Capstone.EventManagementPortal.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Future;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -27,7 +28,14 @@ public class Event {
     private String category; // e.g., Conference, Workshop
 
     @Column(nullable = false)
+    @Future(message = "Event date must be in the future")
     private LocalDateTime dateTime;
+
+    public void validateEventDate(LocalDateTime dateTime) {
+        if (dateTime.isBefore(LocalDateTime.now().plusHours(24))) {
+            throw new IllegalArgumentException("Events must be scheduled at least 24 hours in advance");
+        }
+    }
 
     @Column(nullable = false)
     private int maxSlots;

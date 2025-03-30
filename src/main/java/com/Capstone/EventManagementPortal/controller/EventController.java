@@ -1,82 +1,74 @@
 package com.Capstone.EventManagementPortal.controller;
 
+import com.Capstone.EventManagementPortal.dto.EventDTO;
 import com.Capstone.EventManagementPortal.model.Event;
-import com.Capstone.EventManagementPortal.model.Role;
+import com.Capstone.EventManagementPortal.security.jwt.JwtUtil;
 import com.Capstone.EventManagementPortal.service.EventService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/events")
+@RequestMapping("/api/events")
 public class EventController {
 
     private final EventService eventService;
+    private final JwtUtil jwtUtil;
 
-    public EventController(EventService eventService) {
+    public EventController(EventService eventService, JwtUtil jwtUtil) {
         this.eventService = eventService;
+        this.jwtUtil = jwtUtil;
     }
 
-    // 1️⃣ Create a new event
-    @PostMapping
-    public ResponseEntity<?> createEvent(@RequestBody Event event) {
-        // Ensure the user creating the event is an ORGANIZER
-        if (!event.getOrganizer().getRole().equals(Role.ORGANIZER)) {
-            return ResponseEntity.badRequest().body("Only organizers can create events!");
+    // ✅ Create Event (Only Organizers)
+    @PostMapping("/create")
+    public ResponseEntity<EventDTO> createEvent(@RequestBody Event event, Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        if (!jwtUtil.checkOrganizerAccess(userDetails)) {
+            throw new RuntimeException("Only organizers can create events.");
         }
-        Event createdEvent = eventService.createEvent(event);
-        return ResponseEntity.ok(createdEvent);
+        Event createdEvent = eventService.createEvent(event, authentication.getName());
+        return ResponseEntity.ok(new EventDTO(createdEvent));
     }
 
-
-    // 2️⃣ Get all events
-    @GetMapping
-    public ResponseEntity<List<Event>> getAllEvents() {
-        return ResponseEntity.ok(eventService.getAllEvents());
-    }
-
-    // 3️⃣ Get event by ID
-    @GetMapping("/{id}")
-    public ResponseEntity<Event> getEventById(@PathVariable Long id) {
-        Optional<Event> event = eventService.getEventById(id);
-        return event.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    // 4️⃣ Get events by location
-    @GetMapping("/location/{location}")
-    public ResponseEntity<List<Event>> getEventsByLocation(@PathVariable String location) {
-        return ResponseEntity.ok(eventService.getEventsByLocation(location));
-    }
-
-    // 5️⃣ Update an event
+    // ✅ Update Event (Only Organizer of the Event)
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateEvent(@PathVariable Long id, @RequestBody Event eventDetails) {
-        Optional<Event> existingEvent = eventService.getEventById(id);
-        if (existingEvent.isEmpty()) {
-            return ResponseEntity.status(404).body("Event not found!");
-        }
-        Event updatedEvent = eventService.updateEvent(id, eventDetails);
-        return ResponseEntity.ok(updatedEvent);
+    public ResponseEntity<EventDTO> updateEvent(@PathVariable Long id, @RequestBody Event eventDetails, Authentication authentication) {
+        Optional<Event> updatedEvent = eventService.updateEvent(id, eventDetails, authentication.getName());
+
+        return updatedEvent
+                .map(event -> ResponseEntity.ok(new EventDTO(event)))
+                .orElseThrow(() -> new RuntimeException("Event not found or update failed"));
     }
 
-    // 6️⃣ Delete an event
+    // ✅ Delete Event (Only Organizer of the Event)
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteEvent(@PathVariable Long id) {
+    public ResponseEntity<String> deleteEvent(@PathVariable Long id, Authentication authentication) {
+        eventService.deleteEvent(id, authentication.getName());
+        return ResponseEntity.ok("Event deleted successfully.");
+    }
+
+    // ✅ Get All Events
+    @GetMapping
+    public ResponseEntity<List<EventDTO>> getAllEvents() {
+        List<EventDTO> events = eventService.getAllEvents().stream()
+                .map(EventDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(events);
+    }
+
+    // ✅ Get Event by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<EventDTO> getEventById(@PathVariable Long id) {
         Optional<Event> event = eventService.getEventById(id);
 
-        if (event.isEmpty()) {
-            return ResponseEntity.status(404).body("Event not found!");
-        }
-
-        // Ensure only the event organizer can delete the event
-        if (!event.get().getOrganizer().getRole().equals(Role.ORGANIZER)) {
-            return ResponseEntity.status(403).body("You can only delete events you organized!");
-        }
-
-        eventService.deleteEvent(id);
-        return ResponseEntity.ok("Event deleted successfully!");
+        return event
+                .map(value -> ResponseEntity.ok(new EventDTO(value)))
+                .orElseThrow(() -> new RuntimeException("Event not found"));
     }
-
 }

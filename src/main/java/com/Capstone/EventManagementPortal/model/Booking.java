@@ -3,6 +3,8 @@ package com.Capstone.EventManagementPortal.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "bookings")
 @Getter
@@ -26,5 +28,8 @@ public class Booking {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingStatus bookingStatus;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime bookingTime = LocalDateTime.now();
 
 }

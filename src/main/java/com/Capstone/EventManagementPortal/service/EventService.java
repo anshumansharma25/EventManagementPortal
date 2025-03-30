@@ -1,15 +1,20 @@
 package com.Capstone.EventManagementPortal.service;
 
+import com.Capstone.EventManagementPortal.dto.EventDTO;
 import com.Capstone.EventManagementPortal.model.Event;
+
 import java.util.List;
 import java.util.Optional;
 
 public interface EventService {
-    Event createEvent(Event event);
-    Optional<Event> getEventById(Long id);
-    List<Event> getAllEvents();
-    Event updateEvent(Long id, Event event);
-    void deleteEvent(Long id);
-    List<Event> getEventsByLocation(String location);
 
+    Event createEvent(Event event, String organizerEmail); // Ensure it takes 2 parameters
+
+    Optional<Event> updateEvent(Long eventId, Event eventDetails, String organizerEmail);
+
+    void deleteEvent(Long eventId, String organizerEmail);
+
+    List<Event> getAllEvents(); // Ensure this returns a list of Event, not Optional<Event>
+
+    Optional<Event> getEventById(Long eventId);
 }

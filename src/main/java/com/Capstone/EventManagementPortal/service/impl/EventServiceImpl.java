@@ -1,43 +1,66 @@
 package com.Capstone.EventManagementPortal.service.impl;
 
+import com.Capstone.EventManagementPortal.dto.EventDTO;
 import com.Capstone.EventManagementPortal.model.Event;
-import com.Capstone.EventManagementPortal.model.Role;
+import com.Capstone.EventManagementPortal.model.User;
 import com.Capstone.EventManagementPortal.repository.EventRepository;
+import com.Capstone.EventManagementPortal.repository.UserRepository;
 import com.Capstone.EventManagementPortal.service.EventService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    public EventServiceImpl(EventRepository eventRepository) {
+    public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository) {
         this.eventRepository = eventRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
-    public Event createEvent(Event event) {
-        if (!event.getOrganizer().getRole().equals(Role.ORGANIZER)) {
-            throw new RuntimeException("Only organizers can create events!");
-        }
+    public Event createEvent(Event event, String organizerEmail) {
+        User organizer = userRepository.findByEmail(organizerEmail)
+                .orElseThrow(() -> new RuntimeException("Organizer not found"));
+        event.setOrganizer(organizer);
         return eventRepository.save(event);
     }
 
     @Override
-    public Optional<Event> getEventById(Long id) {
-        return eventRepository.findById(id);
+    public Optional<Event> updateEvent(Long eventId, Event eventDetails, String organizerEmail) {
+        return eventRepository.findById(eventId).map(event -> {
+            if (!event.getOrganizer().getEmail().equals(organizerEmail)) {
+                throw new RuntimeException("Unauthorized: Only the event organizer can update this event.");
+            }
+
+            event.setTitle(eventDetails.getTitle());
+            event.setDescription(eventDetails.getDescription());
+            event.setCategory(eventDetails.getCategory());
+            event.setDateTime(eventDetails.getDateTime());
+            event.setMaxSlots(eventDetails.getMaxSlots());
+            event.setAvailableSlots(eventDetails.getAvailableSlots());
+            event.setLocation(eventDetails.getLocation());
+
+            return eventRepository.save(event);
+        });
     }
 
     @Override
-    public List<Event> getEventsByLocation(String location) {
-        return eventRepository.findByLocation(location);
-    }
+    public void deleteEvent(Long eventId, String organizerEmail) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
 
+        if (!event.getOrganizer().getEmail().equals(organizerEmail)) {
+            throw new RuntimeException("Unauthorized: Only the event organizer can delete this event.");
+        }
+
+        eventRepository.delete(event);
+    }
 
     @Override
     public List<Event> getAllEvents() {
@@ -45,24 +68,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Event updateEvent(Long id, Event event) {
-        return eventRepository.findById(id)
-                .map(existingEvent -> {
-                    existingEvent.setTitle(event.getTitle());
-                    existingEvent.setDescription(event.getDescription());
-                    existingEvent.setCategory(event.getCategory());
-                    existingEvent.setDateTime(event.getDateTime());
-                    existingEvent.setMaxSlots(event.getMaxSlots());
-                    existingEvent.setAvailableSlots(event.getAvailableSlots());
-                    existingEvent.setLocation(event.getLocation());
-                    return eventRepository.save(existingEvent);
-                })
-                .orElseThrow(() -> new RuntimeException("Event not found!"));
-    }
-
-
-    @Override
-    public void deleteEvent(Long id) {
-        eventRepository.deleteById(id);
+    public Optional<Event> getEventById(Long eventId) {
+        return eventRepository.findById(eventId);
     }
 }

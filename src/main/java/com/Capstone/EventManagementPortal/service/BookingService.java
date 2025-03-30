@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookingService {
-    Booking createBooking(Booking booking);
+    public Booking createBooking(Booking booking, String userEmail);
     Optional<Booking> getBookingById(Long id);
     List<Booking> getAllBookings();
-    void cancelBooking(Long id);
+    List<Booking> getBookingsByUserId(Long userId);  // ✅ Added method
+    List<Booking> getBookingsByEventId(Long eventId); // ✅ Added method
+    void cancelBooking(Long bookingId, String userEmail);
 }

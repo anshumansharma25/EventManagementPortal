@@ -7,6 +7,6 @@ import java.util.List;
 
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
-    List<Event> findByOrganizerId(Long organizerId);  // Custom method to fetch events by organizer
+    List<Event> findByOrganizer_Id(Long organizerId);  // Custom method to fetch events by organizer
     List<Event> findByLocation(String location);
 }
