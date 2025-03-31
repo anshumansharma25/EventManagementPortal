@@ -33,6 +33,9 @@ public class BookingDTO {
     public LocalDateTime getBookingTime() { return bookingTime; }
 
     public Booking toEntity(User user, Event event) {
+        if (user == null || event == null) {
+            throw new IllegalArgumentException("User or Event cannot be null");
+        }
         Booking booking = new Booking();
         booking.setId(this.id);
         booking.setUser(user);

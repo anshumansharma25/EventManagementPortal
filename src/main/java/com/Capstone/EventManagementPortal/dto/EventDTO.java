@@ -1,18 +1,26 @@
 package com.Capstone.EventManagementPortal.dto;
 
 import com.Capstone.EventManagementPortal.model.Event;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 public class EventDTO {
+    @Getter
     private Long id;
+    @Getter
     private String title;
+    @Getter
     private String description;
+    @Getter
     private String category;
     private LocalDateTime dateTime;
+    @Getter
     private String location;
+    @Getter
     private int maxSlots;
+    @Getter
     private int availableSlots;
     private String organizerEmail;
 

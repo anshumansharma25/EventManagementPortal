@@ -30,7 +30,9 @@ public class JwtUtil {
      */
     public String generateToken(String email, Role role) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role.name());  // ✅ Ensure role is added to token
+
+        // Ensure role is prefixed with ROLE_ when adding to the token
+        claims.put("role", "ROLE_" + role.name());
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -40,6 +42,7 @@ public class JwtUtil {
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
 
     /**
@@ -95,7 +98,7 @@ public class JwtUtil {
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         boolean isAdmin = authorities.stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN")  );
 
         if (!isAdmin) {
             throw new AccessDeniedException("Access Denied: Admin role required.");
@@ -104,16 +107,29 @@ public class JwtUtil {
 
     public void checkOrganizerAccess(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new SecurityException("Access Denied: No authentication data.");
+            throw new SecurityException("Access Denied: User not authenticated.");
         }
 
-        boolean isOrganizer = authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ORGANIZER"));
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        System.out.println("Authenticated user: " + userDetails.getUsername());
+        System.out.println("Roles: " + userDetails.getAuthorities());
+
+        boolean isOrganizer = userDetails.getAuthorities().stream()
+                .anyMatch(grantedAuthority ->
+                        grantedAuthority.getAuthority().equals("ROLE_ORGANIZER") ||
+                                grantedAuthority.getAuthority().equals("ORGANIZER") // Fallback in case
+                );
 
         if (!isOrganizer) {
             throw new SecurityException("Access Denied: Organizers only.");
         }
     }
+
+
+
+
+
+
 
     /**
      * ✅ Extract the role from JWT token.

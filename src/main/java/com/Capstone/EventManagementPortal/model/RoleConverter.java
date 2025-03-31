@@ -1,6 +1,5 @@
 package com.Capstone.EventManagementPortal.model;
 
-import com.Capstone.EventManagementPortal.model.Role;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
@@ -9,11 +8,19 @@ public class RoleConverter implements AttributeConverter<Role, String> {
 
     @Override
     public String convertToDatabaseColumn(Role role) {
-        return "ROLE_" + role.name(); // Store as ROLE_ADMIN, ROLE_ORGANIZER, etc.
+        if (role == null) {
+            return null;
+        }
+        // Directly stores values as "ADMIN", "ORGANIZER", etc. without "ROLE_" prefix
+        return role.name();
     }
 
     @Override
-    public Role convertToEntityAttribute(String dbRole) {
-        return Role.valueOf(dbRole.replace("ROLE_", "")); // Convert back to Java enum
+    public Role convertToEntityAttribute(String dbData) {
+        if (dbData == null || dbData.isEmpty()) {
+            return null;
+        }
+        // Directly converts the database value to Role enum
+        return Role.valueOf(dbData);
     }
 }

@@ -30,6 +30,13 @@ public class Booking {
     private BookingStatus bookingStatus;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime bookingTime = LocalDateTime.now();
+    private LocalDateTime bookingTime;
 
+    // Ensure bookingTime is set on creation
+    @PrePersist
+    public void prePersist() {
+        if (bookingTime == null) {
+            bookingTime = LocalDateTime.now(); // Default booking time to current time on creation
+        }
+    }
 }

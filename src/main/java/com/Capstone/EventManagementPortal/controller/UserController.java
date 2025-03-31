@@ -33,7 +33,6 @@ public class UserController {
         this.authenticationManager = authenticationManager;
     }
 
-    // 1️⃣ Register a new user
     @PostMapping("/register")
     public ResponseEntity<UserDTO> registerUser(@RequestBody User user) {
         User registeredUser = userService.registerUser(user);
@@ -43,13 +42,9 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
         try {
-            System.out.println("🚀 Attempting login with email: " + request.getEmail());
-
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
-
-            System.out.println("✅ Authentication successful for: " + request.getEmail());
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             User registeredUser = userService.findByEmail(request.getEmail());
@@ -57,39 +52,32 @@ public class UserController {
                     .map(GrantedAuthority::getAuthority)
                     .map(Role::valueOf)
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("❌ Role extraction failed"));
+                    .orElseThrow(() -> new RuntimeException("Role extraction failed"));
 
             String token = jwtUtil.generateToken(request.getEmail(), userRole);
             return ResponseEntity.ok(new JwtResponse(token));
         } catch (Exception e) {
-            System.out.println("❌ Login failed: " + e.getMessage()); // ✅ Capture error
-            e.printStackTrace();  // ✅ Print stack trace
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
     }
 
-
-
-    // 2️⃣ Get all users (ADMIN Only)
     @GetMapping("/")
     public ResponseEntity<List<UserDTO>> getAllUsers(Authentication authentication) throws AccessDeniedException {
         jwtUtil.checkAdminAccess(authentication);
 
         List<UserDTO> userDTOs = userService.getAllUsers().stream()
-                .map(user -> new UserDTO(user)) // ✅ Correctly mapping User -> UserDTO
+                .map(UserDTO::new)
                 .toList();
 
         return ResponseEntity.ok(userDTOs);
     }
 
-    // 3️⃣ Get user by ID (Authenticated Users)
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
         return ResponseEntity.ok(new UserDTO(user));
     }
 
-    // 4️⃣ Get user by Email (Authenticated Users)
     @GetMapping("/email/{email}")
     public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) {
         User user = userService.getUserByEmail(email)
@@ -97,7 +85,6 @@ public class UserController {
         return ResponseEntity.ok(new UserDTO(user));
     }
 
-    // 5️⃣ Update user details (User can update only their own account)
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody User userDetails, Authentication authentication) {
         String loggedInEmail = authentication.getName();
@@ -105,7 +92,6 @@ public class UserController {
         return ResponseEntity.ok(new UserDTO(updatedUser));
     }
 
-    // 6️⃣ Delete user (Only Admin or the User Themselves)
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id, Authentication authentication) {
         String loggedInEmail = authentication.getName();

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder // ✅ Enables builder pattern
 public class Event {
 
     @Id
@@ -31,12 +32,6 @@ public class Event {
     @Future(message = "Event date must be in the future")
     private LocalDateTime dateTime;
 
-    public void validateEventDate(LocalDateTime dateTime) {
-        if (dateTime.isBefore(LocalDateTime.now().plusHours(24))) {
-            throw new IllegalArgumentException("Events must be scheduled at least 24 hours in advance");
-        }
-    }
-
     @Column(nullable = false)
     private int maxSlots;
 
@@ -49,4 +44,21 @@ public class Event {
     @ManyToOne
     @JoinColumn(name = "organizer_id", nullable = false)
     private User organizer;
+
+    // ✅ Ensure date validation is applied when setting event date
+    public void setDateTime(LocalDateTime dateTime) {
+        if (dateTime.isBefore(LocalDateTime.now().plusHours(24))) {
+            throw new IllegalArgumentException("Events must be scheduled at least 24 hours in advance");
+        }
+        this.dateTime = dateTime;
+    }
+
+    // ✅ Ensure availableSlots is initialized correctly
+    public void setMaxSlots(int maxSlots) {
+        if (maxSlots <= 0) {
+            throw new IllegalArgumentException("Max slots must be greater than zero");
+        }
+        this.maxSlots = maxSlots;
+        this.availableSlots = maxSlots; // Default available slots to max slots
+    }
 }
