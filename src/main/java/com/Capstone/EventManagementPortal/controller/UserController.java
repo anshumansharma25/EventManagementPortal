@@ -74,8 +74,12 @@ public class UserController {
     @GetMapping("/")
     public ResponseEntity<List<UserDTO>> getAllUsers(Authentication authentication) throws AccessDeniedException {
         jwtUtil.checkAdminAccess(authentication);
-        return ResponseEntity.ok(userService.getAllUsers().stream()
-                .map(UserDTO::new).toList());
+
+        List<UserDTO> userDTOs = userService.getAllUsers().stream()
+                .map(user -> new UserDTO(user)) // ✅ Correctly mapping User -> UserDTO
+                .toList();
+
+        return ResponseEntity.ok(userDTOs);
     }
 
     // 3️⃣ Get user by ID (Authenticated Users)

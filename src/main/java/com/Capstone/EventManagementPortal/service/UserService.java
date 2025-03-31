@@ -1,5 +1,6 @@
 package com.Capstone.EventManagementPortal.service;
 
+import com.Capstone.EventManagementPortal.dto.UserDTO;
 import com.Capstone.EventManagementPortal.model.User;
 import java.util.List;
 import java.util.Optional;

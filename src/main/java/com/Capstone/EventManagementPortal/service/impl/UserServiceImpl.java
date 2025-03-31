@@ -1,5 +1,6 @@
 package com.Capstone.EventManagementPortal.service.impl;
 
+import com.Capstone.EventManagementPortal.dto.UserDTO;
 import com.Capstone.EventManagementPortal.exception.EmailAlreadyExistsException;
 import com.Capstone.EventManagementPortal.exception.UserNotFoundException;
 import com.Capstone.EventManagementPortal.model.User;
@@ -67,10 +68,13 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("User with ID " + userId + " not found"));
     }
 
+
     @Override
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        return userRepository.findAll();  // Returns List<User>
     }
+
+
 
     @Override
     public Optional<User> getUserByEmail(String email) {
@@ -86,18 +90,29 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (loggedInUser.getRole() == Role.ADMIN || loggedInUser.getId().equals(id)) {
-            user.setName(userDetails.getName());
-            user.setUsername(userDetails.getUsername());
-            user.setEmail(userDetails.getEmail());
-
+            if (userDetails.getUsername() != null && !userDetails.getUsername().trim().isEmpty()) {
+                user.setUsername(userDetails.getUsername());
+            }
+            if (userDetails.getEmail() != null && !userDetails.getEmail().trim().isEmpty()) {
+                user.setEmail(userDetails.getEmail());
+            }
+            if (userDetails.getRole() != null) {
+                // ✅ Fix: Remove "ROLE_" prefix if it exists before saving
+                String roleName = userDetails.getRole().name().replace("ROLE_", "");
+                user.setRole(Role.valueOf(roleName));
+            }
             if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
                 user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
             }
 
-            return userRepository.save(user);
+            User updatedUser = userRepository.save(user);
+            System.out.println("✅ User updated successfully: " + updatedUser);
+            return updatedUser;
         }
+
         throw new RuntimeException("Unauthorized to update user");
     }
+
 
     @Override
     public User findByEmail(String email) {
