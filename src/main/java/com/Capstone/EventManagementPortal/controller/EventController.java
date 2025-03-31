@@ -4,11 +4,14 @@ import com.Capstone.EventManagementPortal.dto.EventDTO;
 import com.Capstone.EventManagementPortal.model.Event;
 import com.Capstone.EventManagementPortal.security.jwt.JwtUtil;
 import com.Capstone.EventManagementPortal.service.EventService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,14 +30,13 @@ public class EventController {
 
     // ✅ Create Event (Only Organizers)
     @PostMapping("/create")
-    public ResponseEntity<EventDTO> createEvent(@RequestBody Event event, Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        if (!jwtUtil.checkOrganizerAccess(userDetails)) {
-            throw new RuntimeException("Only organizers can create events.");
-        }
+    public ResponseEntity<EventDTO> createEvent(@RequestBody Event event, Authentication authentication) throws AccessDeniedException {
+        jwtUtil.checkOrganizerAccess(authentication); // ✅ Fixed
         Event createdEvent = eventService.createEvent(event, authentication.getName());
         return ResponseEntity.ok(new EventDTO(createdEvent));
     }
+
+
 
     // ✅ Update Event (Only Organizer of the Event)
     @PutMapping("/{id}")
@@ -65,10 +67,13 @@ public class EventController {
     // ✅ Get Event by ID
     @GetMapping("/{id}")
     public ResponseEntity<EventDTO> getEventById(@PathVariable Long id) {
-        Optional<Event> event = eventService.getEventById(id);
+        Optional<Event> eventOpt = Optional.ofNullable(eventService.getEventById(id));
+        if (eventOpt.isPresent()) {
+            Event event = eventOpt.get();
+            return ResponseEntity.ok(new EventDTO(event));
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found");
+        }
 
-        return event
-                .map(value -> ResponseEntity.ok(new EventDTO(value)))
-                .orElseThrow(() -> new RuntimeException("Event not found"));
     }
 }

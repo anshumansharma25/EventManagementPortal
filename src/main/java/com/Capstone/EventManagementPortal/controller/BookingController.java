@@ -4,15 +4,16 @@ import com.Capstone.EventManagementPortal.dto.BookingDTO;
 import com.Capstone.EventManagementPortal.model.Booking;
 import com.Capstone.EventManagementPortal.model.Event;
 import com.Capstone.EventManagementPortal.model.Role;
-import com.Capstone.EventManagementPortal.model.User;
 import com.Capstone.EventManagementPortal.security.jwt.JwtUtil;
 import com.Capstone.EventManagementPortal.service.BookingService;
 import com.Capstone.EventManagementPortal.service.EventService;
-import com.Capstone.EventManagementPortal.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,13 +22,11 @@ import java.util.stream.Collectors;
 public class BookingController {
 
     private final BookingService bookingService;
-    private final UserService userService;
-    private final EventService eventService;  // ✅ Added EventService
+    private final EventService eventService;
     private final JwtUtil jwtUtil;
 
-    public BookingController(BookingService bookingService, UserService userService, EventService eventService, JwtUtil jwtUtil) {
+    public BookingController(BookingService bookingService, EventService eventService, JwtUtil jwtUtil) {
         this.bookingService = bookingService;
-        this.userService = userService;
         this.eventService = eventService;
         this.jwtUtil = jwtUtil;
     }
@@ -35,19 +34,19 @@ public class BookingController {
     // ✅ Create Booking (Only Attendees)
     @PostMapping
     public ResponseEntity<BookingDTO> createBooking(@RequestBody BookingDTO bookingDTO, Authentication authentication) {
-        String userEmail = authentication.getName();
-        User user = userService.getUserByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found!"));
+        String userEmail = jwtUtil.extractUsername(authentication);  // ✅ Extract user email
+        String token = authentication.getCredentials().toString();  // ✅ Extract token
+        String roleString = jwtUtil.extractRoleFromToken(token);  // ✅ Extract role from token
+        Role userRole = Role.valueOf(roleString);  // ✅ Convert to Role enum
 
-        if (user.getRole() != Role.ATTENDEE) {
-            throw new RuntimeException("Only attendees can book events.");
+
+        if (userRole != Role.ATTENDEE) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only attendees can book events.");
         }
 
-        // ✅ Corrected: Use eventService to fetch the event
-        Event event = eventService.getEventById(bookingDTO.getEventId())
-                .orElseThrow(() -> new RuntimeException("Event not found!"));
+        Event event = eventService.getEventById(bookingDTO.getEventId());
 
-        Booking newBooking = bookingDTO.toEntity(user, event);
+        Booking newBooking = bookingDTO.toEntity(null, event);
         newBooking = bookingService.createBooking(newBooking, userEmail);
         return ResponseEntity.ok(new BookingDTO(newBooking));
     }
@@ -56,13 +55,13 @@ public class BookingController {
     @GetMapping("/{id}")
     public ResponseEntity<BookingDTO> getBookingById(@PathVariable Long id) {
         Booking booking = bookingService.getBookingById(id)
-                .orElseThrow(() -> new RuntimeException("Booking not found!"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found!"));
         return ResponseEntity.ok(new BookingDTO(booking));
     }
 
     // ✅ Get All Bookings (Only Admin)
     @GetMapping
-    public ResponseEntity<List<BookingDTO>> getAllBookings(Authentication authentication) {
+    public ResponseEntity<List<BookingDTO>> getAllBookings(Authentication authentication) throws AccessDeniedException {
         jwtUtil.checkAdminAccess(authentication);
         List<BookingDTO> bookings = bookingService.getAllBookings()
                 .stream()
@@ -71,9 +70,19 @@ public class BookingController {
         return ResponseEntity.ok(bookings);
     }
 
-    // ✅ Get Bookings by User ID
+    // ✅ Get Bookings by User ID (Only Admin or the User)
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BookingDTO>> getBookingsByUserId(@PathVariable Long userId) {
+    public ResponseEntity<List<BookingDTO>> getBookingsByUserId(@PathVariable Long userId, Authentication authentication) {
+        String requesterEmail = jwtUtil.extractUsername(authentication);
+        String token = authentication.getCredentials().toString();  // ✅ Extract token from Authentication
+        String roleString = jwtUtil.extractRoleFromToken(token);  // ✅ Get role from token
+        Role requesterRole = Role.valueOf(roleString);  // ✅ Convert string to Role Enum
+
+
+        if (requesterRole != Role.ADMIN && !bookingService.isUserBookingOwner(userId, requesterEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to view this user's bookings.");
+        }
+
         List<BookingDTO> bookings = bookingService.getBookingsByUserId(userId)
                 .stream()
                 .map(BookingDTO::new)
@@ -94,7 +103,7 @@ public class BookingController {
     // ✅ Cancel Booking (Only the user who booked can cancel)
     @DeleteMapping("/{id}")
     public ResponseEntity<String> cancelBooking(@PathVariable Long id, Authentication authentication) {
-        String userEmail = authentication.getName();
+        String userEmail = jwtUtil.extractUsername(authentication); // ✅ Extracts email
         bookingService.cancelBooking(id, userEmail);
         return ResponseEntity.ok("Booking cancelled successfully!");
     }

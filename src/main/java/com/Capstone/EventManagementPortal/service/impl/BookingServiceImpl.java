@@ -20,7 +20,8 @@ public class BookingServiceImpl implements BookingService {
     private final EventRepository eventRepository;
 
     @Autowired
-    public BookingServiceImpl(BookingRepository bookingRepository, UserRepository userRepository, EventRepository eventRepository) {
+    public BookingServiceImpl(BookingRepository bookingRepository, UserRepository userRepository,
+                              EventRepository eventRepository) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
@@ -35,12 +36,10 @@ public class BookingServiceImpl implements BookingService {
         Event event = eventRepository.findById(booking.getEvent().getId())
                 .orElseThrow(() -> new RuntimeException("Event not found!"));
 
-        // Check if event has available slots
         if (event.getAvailableSlots() <= 0) {
             throw new RuntimeException("No available slots for this event.");
         }
 
-        // Only attendees can book an event
         if (!user.getRole().equals(Role.ATTENDEE)) {
             throw new RuntimeException("Only attendees can book events.");
         }
@@ -53,6 +52,8 @@ public class BookingServiceImpl implements BookingService {
 
         // Reduce available slots for the event
         event.setAvailableSlots(event.getAvailableSlots() - 1);
+
+        // ✅ Directly save the updated event (instead of calling updateEvent)
         eventRepository.save(event);
 
         return bookingRepository.save(booking);
@@ -82,6 +83,14 @@ public class BookingServiceImpl implements BookingService {
         return bookingRepository.findByEventId(eventId);
     }
 
+    @Override
+    public boolean isUserBookingOwner(Long userId, String email) {
+        return userRepository.findById(userId)
+                .map(user -> user.getEmail().equals(email))
+                .orElse(false);
+    }
+
+
     // ✅ 6️⃣ Cancel a booking (Only the user who booked can cancel)
     @Override
     public void cancelBooking(Long bookingId, String userEmail) {
@@ -95,9 +104,14 @@ public class BookingServiceImpl implements BookingService {
         // Free up the slot in the event
         Event event = booking.getEvent();
         event.setAvailableSlots(event.getAvailableSlots() + 1);
+
+        // ✅ Directly save the updated event (instead of calling updateEvent)
         eventRepository.save(event);
 
         // Delete the booking
         bookingRepository.delete(booking);
+
+
+
     }
 }

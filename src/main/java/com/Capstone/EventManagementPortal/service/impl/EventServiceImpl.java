@@ -1,6 +1,7 @@
 package com.Capstone.EventManagementPortal.service.impl;
 
 import com.Capstone.EventManagementPortal.dto.EventDTO;
+import com.Capstone.EventManagementPortal.exception.EventNotFoundException;
 import com.Capstone.EventManagementPortal.model.Event;
 import com.Capstone.EventManagementPortal.model.User;
 import com.Capstone.EventManagementPortal.repository.EventRepository;
@@ -68,7 +69,10 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Optional<Event> getEventById(Long eventId) {
-        return eventRepository.findById(eventId);
+    public Event getEventById(Long eventId) {
+        return eventRepository.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException("Event not found with ID: " + eventId));
     }
+
+
 }

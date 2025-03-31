@@ -16,5 +16,5 @@ public interface EventService {
 
     List<Event> getAllEvents(); // Ensure this returns a list of Event, not Optional<Event>
 
-    Optional<Event> getEventById(Long eventId);
+    Event getEventById(Long eventId);
 }

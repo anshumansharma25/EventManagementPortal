@@ -15,6 +15,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private String name;  // ✅ Added Name
+
     @Column(nullable = false, unique = true)
     private String username;
 
@@ -24,8 +27,8 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Convert(converter = RoleConverter.class)
     private Role role;
+
 
 }
