@@ -31,6 +31,7 @@ if (document.getElementById('loginForm')) {
                     window.location.href = 'user-dashboard.html'; // Redirect to User Dashboard
                 } else if (role === 'ORGANIZER') {
                     window.location.href = 'organizer-dashboard.html'; // Redirect to Organizer Dashboard
+                }
             } else {
                 // Handle invalid credentials or failed login
                 messageElement.innerHTML = 'Invalid credentials, please try again.';
@@ -47,20 +48,23 @@ if (document.getElementById('loginForm')) {
 
 // Function to handle the login API call
 async function loginUser(userData) {
-    const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-    });
+    try {
+        const response = await fetch('http://localhost:8080/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+        });
 
-    if (!response.ok) {
-        throw new Error('Login failed');
+        if (!response.ok) {
+            throw new Error('Login failed');
+        }
+
+        const data = await response.json();
+        return data; // Return the parsed response
+    } catch (error) {
+        console.error('Login error:', error);
+        throw new Error('Login failed. Please try again later.');
     }
-
-    const data = await response.json();
-    return data;
 }
 
 // Helper function to decode JWT
@@ -135,17 +139,17 @@ async function registerUser(userData) {
         });
 
         if (!response.ok) {
-            const errorText = await response.text();  // Capture raw error message
+            const errorText = await response.text();  // Capture the raw error message from response
             throw new Error(`Registration failed: ${errorText}`);
         }
 
-        return response.json();  // Return the user data as JSON
+        const data = await response.json();
+        return data; // Return the user data as JSON
     } catch (error) {
-        console.error('Fetch error:', error);
+        console.error('Registration error:', error);
         throw new Error('Network error. Please try again later.');
     }
 }
-
 
 // Helper function to get JWT token from localStorage
 function getAuthToken() {

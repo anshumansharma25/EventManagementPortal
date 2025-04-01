@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,16 +30,30 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .authorizeRequests(authz -> authz
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/login.html", "/register.html").permitAll()
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/login.html",
+                                "/register.html",
+                                "/css/**",  // ✅ Allow CSS
+                                "/js/**",   // ✅ Allow JS
+                                "/images/**",  // ✅ Allow Images
+                                "/static/**",  // ✅ Allow Static Files
+                                "/favicon.ico" // ✅ Allow favicon
+                        ).permitAll()
+                        .requestMatchers("/organizer-dashboard.html").hasRole("ORGANIZER")
+                        .requestMatchers("/user-dashboard.html").hasRole("ATTENDEE")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
+
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
