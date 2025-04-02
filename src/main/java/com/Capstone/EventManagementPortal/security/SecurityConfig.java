@@ -4,6 +4,7 @@ import com.Capstone.EventManagementPortal.security.jwt.JwtAuthenticationFilter;
 import com.Capstone.EventManagementPortal.security.jwt.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -43,8 +44,17 @@ public class SecurityConfig {
                                 "/static/**",  // ✅ Allow Static Files
                                 "/favicon.ico" // ✅ Allow favicon
                         ).permitAll()
-                        .requestMatchers("/organizer-dashboard.html").hasRole("ORGANIZER")
-                        .requestMatchers("/user-dashboard.html").hasRole("ATTENDEE")
+                        .requestMatchers("/organizer-dashboard.html").hasAuthority("ORGANIZER")
+                        .requestMatchers("/user-dashboard.html").hasAuthority("ATTENDEE")
+                        .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/events/**").hasAuthority("ORGANIZER")
+                        .requestMatchers(HttpMethod.PUT, "/api/events/**").hasAuthority("ORGANIZER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasAuthority("ORGANIZER")
+                        .requestMatchers(HttpMethod.POST, "/api/bookings/**").hasAuthority("ATTENDEE")  // Only attendees can book
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/**").authenticated()  // Allow authenticated users to fetch bookings
+                        .requestMatchers(HttpMethod.DELETE, "/api/bookings/**").authenticated()  // Only authenticated users can cancel
+
+                        .requestMatchers("/**/*.html").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

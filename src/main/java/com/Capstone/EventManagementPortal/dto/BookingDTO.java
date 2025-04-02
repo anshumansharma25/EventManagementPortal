@@ -6,7 +6,6 @@ import com.Capstone.EventManagementPortal.model.Event;
 import com.Capstone.EventManagementPortal.model.User;
 
 import java.time.LocalDateTime;
-
 public class BookingDTO {
     private Long id;
     private Long eventId;
@@ -14,6 +13,9 @@ public class BookingDTO {
     private String userEmail;
     private BookingStatus bookingStatus;
     private LocalDateTime bookingTime;
+
+    // ✅ No-arg constructor (Required for JSON deserialization)
+    public BookingDTO() {}
 
     public BookingDTO(Booking booking) {
         this.id = booking.getId();
@@ -26,11 +28,22 @@ public class BookingDTO {
 
     // Getters & Setters
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
     public Long getEventId() { return eventId; }
+    public void setEventId(Long eventId) { this.eventId = eventId; }
+
     public String getEventTitle() { return eventTitle; }
+    public void setEventTitle(String eventTitle) { this.eventTitle = eventTitle; }
+
     public String getUserEmail() { return userEmail; }
+    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+
     public BookingStatus getBookingStatus() { return bookingStatus; }
+    public void setBookingStatus(BookingStatus bookingStatus) { this.bookingStatus = bookingStatus; }
+
     public LocalDateTime getBookingTime() { return bookingTime; }
+    public void setBookingTime(LocalDateTime bookingTime) { this.bookingTime = bookingTime; }
 
     public Booking toEntity(User user, Event event) {
         if (user == null || event == null) {

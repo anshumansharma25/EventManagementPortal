@@ -52,6 +52,7 @@ public class JwtUtil {
         if (authentication == null || authentication.getPrincipal() == null) {
             throw new IllegalArgumentException("Invalid authentication data.");
         }
+
         return authentication.getName(); // ✅ Email is the username
     }
 

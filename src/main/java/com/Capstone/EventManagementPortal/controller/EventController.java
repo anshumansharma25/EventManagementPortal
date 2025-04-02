@@ -29,7 +29,7 @@ public class EventController {
     }
 
     // ✅ Create Event (Only Organizers)
-    @PostMapping
+    @PostMapping("/create")
     public @ResponseBody  ResponseEntity<EventDTO> createEvent(@RequestBody Event event, Authentication authentication) throws AccessDeniedException {
         jwtUtil.checkOrganizerAccess(authentication); // ✅ Fixed
         Event createdEvent = eventService.createEvent(event, authentication.getName());
