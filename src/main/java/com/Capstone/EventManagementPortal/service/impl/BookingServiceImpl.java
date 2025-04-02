@@ -1,12 +1,21 @@
 package com.Capstone.EventManagementPortal.service.impl;
 
+import com.Capstone.EventManagementPortal.dto.BookingDTO;
+import com.Capstone.EventManagementPortal.exception.EventNotFoundException;
+import com.Capstone.EventManagementPortal.exception.UserNotFoundException;
 import com.Capstone.EventManagementPortal.model.*;
 import com.Capstone.EventManagementPortal.repository.BookingRepository;
 import com.Capstone.EventManagementPortal.repository.EventRepository;
 import com.Capstone.EventManagementPortal.repository.UserRepository;
 import com.Capstone.EventManagementPortal.service.BookingService;
+import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,36 +37,37 @@ public class BookingServiceImpl implements BookingService {
     }
 
     // ✅ 1️⃣ Create a booking (Only ATTENDEES can book)
-    @Override
-    public Booking createBooking(Booking booking, String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found!"));
 
-        Event event = eventRepository.findById(booking.getEvent().getId())
-                .orElseThrow(() -> new RuntimeException("Event not found!"));
+    @Transactional
+    public Booking createBooking(@NotNull BookingDTO bookingDTO, Long userId) {
+        Event event = eventRepository.findById(bookingDTO.getEventId())
+                .orElseThrow(() -> new EventNotFoundException("Event not found"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (event.getAvailableSlots() <= 0) {
-            throw new RuntimeException("No available slots for this event.");
+            throw new IllegalStateException("No available slots for this event");
         }
 
-        if (!user.getRole().equals(Role.ATTENDEE)) {
-            throw new RuntimeException("Only attendees can book events.");
-        }
-
-        // Create and save booking
-        booking.setUser(user);
+        Booking booking = new Booking();
         booking.setEvent(event);
-        booking.setBookingStatus(BookingStatus.CONFIRMED);
+        booking.setUser(user);
+        booking.setBookingStatus(BookingStatus.Confirmed);
+        booking.setCancelled(false);
         booking.setBookingTime(LocalDateTime.now());
 
-        // Reduce available slots for the event
-        event.setAvailableSlots(event.getAvailableSlots() - 1);
+        Booking savedBooking = bookingRepository.save(booking);
 
-        // ✅ Directly save the updated event (instead of calling updateEvent)
+        event.setAvailableSlots(event.getAvailableSlots() - 1);
         eventRepository.save(event);
 
-        return bookingRepository.save(booking);
+        return savedBooking;
     }
+
+
+
+
 
     // ✅ 2️⃣ Get a booking by ID
     @Override
@@ -85,10 +95,23 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public boolean isUserBookingOwner(Long userId, String email) {
-        return userRepository.findById(userId)
-                .map(user -> user.getEmail().equals(email))
-                .orElse(false);
+        System.out.println("🔍 Checking ownership for userId: " + userId);
+
+        Optional<User> userOptional = userRepository.findById(userId);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            System.out.println("✅ Retrieved User ID: " + user.getId());
+            System.out.println("✅ Retrieved User Email: " + user.getEmail());
+
+            return user.getEmail().equals(email);
+        } else {
+            System.out.println("❌ User with ID " + userId + " not found in DB!");
+            return false;
+        }
     }
+
+
 
 
     // ✅ 6️⃣ Cancel a booking (Only the user who booked can cancel)

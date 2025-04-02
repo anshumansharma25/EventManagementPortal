@@ -1,20 +1,25 @@
 package com.Capstone.EventManagementPortal.controller;
 
 import com.Capstone.EventManagementPortal.dto.BookingDTO;
+import com.Capstone.EventManagementPortal.exception.UserNotFoundException;
 import com.Capstone.EventManagementPortal.model.Booking;
 import com.Capstone.EventManagementPortal.model.Event;
+import com.Capstone.EventManagementPortal.model.User;
 import com.Capstone.EventManagementPortal.security.jwt.JwtUtil;
 import com.Capstone.EventManagementPortal.service.BookingService;
 import com.Capstone.EventManagementPortal.service.EventService;
+import com.Capstone.EventManagementPortal.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
+import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+@Slf4j
 @RestController
 @RequestMapping("/api/bookings")
 public class BookingController {
@@ -22,22 +27,26 @@ public class BookingController {
     private final BookingService bookingService;
     private final EventService eventService;
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
-    public BookingController(BookingService bookingService, EventService eventService, JwtUtil jwtUtil) {
+    public BookingController(BookingService bookingService, EventService eventService, JwtUtil jwtUtil, UserRepository userRepository) {
         this.bookingService = bookingService;
         this.eventService = eventService;
         this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
     }
 
     // ✅ Create Booking (Only Attendees)
     @PostMapping
     public ResponseEntity<BookingDTO> createBooking(@RequestBody BookingDTO bookingDTO, Authentication authentication) {
-        String userEmail = jwtUtil.extractUsername(authentication);
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        Event event = eventService.getEventById(bookingDTO.getEventId());
-        Booking newBooking = bookingDTO.toEntity(null, event);
-        newBooking = bookingService.createBooking(newBooking, userEmail);
-        return ResponseEntity.ok(new BookingDTO(newBooking));
+        Booking savedBooking = bookingService.createBooking(bookingDTO, user.getId());
+        BookingDTO responseDTO = new BookingDTO(savedBooking);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
     // ✅ Get Booking by ID (Only the owner of the booking can view it)
@@ -60,7 +69,10 @@ public class BookingController {
     public ResponseEntity<List<BookingDTO>> getBookingsByUserId(@PathVariable Long userId, Authentication authentication) {
         String requesterEmail = jwtUtil.extractUsername(authentication);
 
-        // Verify if the requested user is the same as the authenticated user
+        System.out.println("🔍 API Request - userId: " + userId);
+        System.out.println("🔍 JWT Extracted Email: " + requesterEmail);
+
+        // Check if the authenticated user owns the bookings
         if (!bookingService.isUserBookingOwner(userId, requesterEmail)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to view these bookings.");
         }
@@ -71,6 +83,7 @@ public class BookingController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(bookings);
     }
+
 
     // ✅ Get Bookings by Event ID (Only the Organizer of the event can view its bookings)
     @GetMapping("/event/{eventId}")

@@ -80,8 +80,7 @@ public class UserController {
 
     @GetMapping("/email/{email}")
     public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) {
-        User user = userService.getUserByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found!"));
+        User user = userService.getUserByEmail(email);
         return ResponseEntity.ok(new UserDTO(user));
     }
 

@@ -26,17 +26,24 @@ public class Booking {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private BookingStatus bookingStatus;
+    @Column(name = "booking_status", nullable = false)
+    private BookingStatus bookingStatus = BookingStatus.Confirmed;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "booking_time", nullable = false)
     private LocalDateTime bookingTime;
+
+    @Column(name = "is_cancelled", nullable = false)
+    private boolean isCancelled = false; // ✅ Default to false
+
 
     // Ensure bookingTime is set on creation
     @PrePersist
     public void prePersist() {
         if (bookingTime == null) {
-            bookingTime = LocalDateTime.now(); // Default booking time to current time on creation
+            bookingTime = LocalDateTime.now();
+        }
+        if (bookingStatus == null) {
+            bookingStatus = BookingStatus.Confirmed; // Always set new bookings to CONFIRMED
         }
     }
 }

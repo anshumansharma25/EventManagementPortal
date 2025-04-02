@@ -1,60 +1,48 @@
 package com.Capstone.EventManagementPortal.dto;
 
 import com.Capstone.EventManagementPortal.model.Booking;
-import com.Capstone.EventManagementPortal.model.BookingStatus;
 import com.Capstone.EventManagementPortal.model.Event;
 import com.Capstone.EventManagementPortal.model.User;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
+
+@Getter
+@Setter
 public class BookingDTO {
+
     private Long id;
+
+    @NotNull
     private Long eventId;
-    private String eventTitle;
-    private String userEmail;
-    private BookingStatus bookingStatus;
+
+    @NotNull
+    private Long userId;
+
     private LocalDateTime bookingTime;
 
-    // ✅ No-arg constructor (Required for JSON deserialization)
+    // Default Constructor
     public BookingDTO() {}
 
+    // Constructor from Entity
     public BookingDTO(Booking booking) {
         this.id = booking.getId();
         this.eventId = booking.getEvent().getId();
-        this.eventTitle = booking.getEvent().getTitle();
-        this.userEmail = booking.getUser().getEmail();
-        this.bookingStatus = booking.getBookingStatus();
+        this.userId = booking.getUser().getId();
         this.bookingTime = booking.getBookingTime();
     }
 
-    // Getters & Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public BookingDTO(Long id, Long id1, Long id2) {
+        this.id = id;
+    }
 
-    public Long getEventId() { return eventId; }
-    public void setEventId(Long eventId) { this.eventId = eventId; }
-
-    public String getEventTitle() { return eventTitle; }
-    public void setEventTitle(String eventTitle) { this.eventTitle = eventTitle; }
-
-    public String getUserEmail() { return userEmail; }
-    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
-
-    public BookingStatus getBookingStatus() { return bookingStatus; }
-    public void setBookingStatus(BookingStatus bookingStatus) { this.bookingStatus = bookingStatus; }
-
-    public LocalDateTime getBookingTime() { return bookingTime; }
-    public void setBookingTime(LocalDateTime bookingTime) { this.bookingTime = bookingTime; }
-
-    public Booking toEntity(User user, Event event) {
-        if (user == null || event == null) {
-            throw new IllegalArgumentException("User or Event cannot be null");
-        }
+    // Convert DTO to Booking entity
+    public Booking toEntity(Event event, User user) {
         Booking booking = new Booking();
-        booking.setId(this.id);
-        booking.setUser(user);
         booking.setEvent(event);
-        booking.setBookingStatus(this.bookingStatus != null ? this.bookingStatus : BookingStatus.CONFIRMED);
-        booking.setBookingTime(this.bookingTime != null ? this.bookingTime : LocalDateTime.now());
+        booking.setUser(user);
         return booking;
     }
 }
