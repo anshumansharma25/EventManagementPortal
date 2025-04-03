@@ -2,9 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Management Platform</title>
+    <link rel="stylesheet" href="/css/index.css">
 </head>
 <body>
+<header>
+    <h1>Event Management Platform</h1>
+    <nav>
+        <ul id="nav-links">
+            <li><a href="#" id="logout-btn" style="display: none;">Logout</a></li>
+        </ul>
+    </nav>
+</header>
 
+<!-- Section for Unregistered Users -->
+<section id="guest-section">
+    <h2>Welcome to the Event Management Platform</h2>
+    <p>Discover and book exciting events, or create and manage your own.</p>
+    <div class="auth-buttons">
+        <a href="login.html" class="btn">Login</a>
+        <a href="register.html" class="btn">Register</a>
+    </div>
+</section>
+
+<!-- Section for Attendees -->
+<section id="attendee-section" style="display: none;">
+    <h2>Available Events</h2>
+    <div id="available-events"></div>
+
+    <h2>Your Booked Events</h2>
+    <div id="booked-events"></div>
+
+    <h2>Event History</h2>
+    <div id="event-history"></div>
+</section>
+
+<!-- Section for Organizers -->
+<section id="organizer-section" style="display: none;">
+    <h2>Create New Event</h2>
+    <form id="event-form">
+        <input type="text" id="event-title" placeholder="Event Title" required>
+        <textarea id="event-description" placeholder="Event Description" required></textarea>
+        <input type="datetime-local" id="event-date" required>
+        <input type="number" id="event-capacity" placeholder="Max Slots" required>
+        <input type="text" id="event-location" placeholder="Location" required>
+        <button type="submit">Create Event</button>
+    </form>
+
+    <h2>Your Events</h2>
+    <div id="organizer-events"></div>
+</section>
+
+<script src="/js/index.js"></script>
 </body>
 </html>

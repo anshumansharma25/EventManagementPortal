@@ -21,17 +21,18 @@ if (document.getElementById('loginForm')) {
                 // Store JWT token in localStorage
                 localStorage.setItem('token', response.token);
 
-                // Decode and log the JWT token to see the role and other data
-                console.log(decodeJWT(response.token)); // Decoding the JWT token
+                const decodedToken = decodeJWT(response.token);
+                console.log("Decoded Token:", decodedToken);
 
-                // Role-based redirection
-                const role = getRoleFromToken(response.token); // Get role from token
+                // Extract and store role
+                const role = decodedToken.role.replace('ROLE_', ''); // Remove 'ROLE_' prefix if present
+                localStorage.setItem('userRole', role);
 
-                if (role === 'ATTENDEE') {
-                    window.location.href = 'user-dashboard.html'; // Redirect to User Dashboard
-                } else if (role === 'ORGANIZER') {
-                    window.location.href = 'organizer-dashboard.html'; // Redirect to Organizer Dashboard
-                }
+                console.log("User Role:", role);
+
+                // Redirect based on role
+                window.location.href = 'index.html';
+
             } else {
                 // Handle invalid credentials or failed login
                 messageElement.innerHTML = 'Invalid credentials, please try again.';

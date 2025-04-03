@@ -45,6 +45,8 @@ public class SecurityConfig {
                                 "/favicon.ico" // ✅ Allow favicon
                         ).permitAll()
                         .requestMatchers("/index.html").permitAll()
+                        .requestMatchers("/login.html").permitAll()
+                        .requestMatchers("/register.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/events/**").hasAuthority("ORGANIZER")
                         .requestMatchers(HttpMethod.PUT, "/api/events/**").hasAuthority("ORGANIZER")
