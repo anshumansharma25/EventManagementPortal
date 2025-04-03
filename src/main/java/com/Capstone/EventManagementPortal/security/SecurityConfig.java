@@ -44,8 +44,7 @@ public class SecurityConfig {
                                 "/static/**",  // ✅ Allow Static Files
                                 "/favicon.ico" // ✅ Allow favicon
                         ).permitAll()
-                        .requestMatchers("/organizer-dashboard.html").hasAuthority("ORGANIZER")
-                        .requestMatchers("/user-dashboard.html").hasAuthority("ATTENDEE")
+                        .requestMatchers("/index.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/events/**").hasAuthority("ORGANIZER")
                         .requestMatchers(HttpMethod.PUT, "/api/events/**").hasAuthority("ORGANIZER")

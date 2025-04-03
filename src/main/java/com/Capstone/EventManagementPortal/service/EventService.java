@@ -17,4 +17,7 @@ public interface EventService {
     List<Event> getAllEvents(); // Ensure this returns a list of Event, not Optional<Event>
 
     Event getEventById(Long eventId);
+
+    public List<EventDTO> getEventsByOrganizer(String email);
+
 }

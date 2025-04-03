@@ -2,6 +2,7 @@ package com.Capstone.EventManagementPortal.service.impl;
 
 import com.Capstone.EventManagementPortal.dto.EventDTO;
 import com.Capstone.EventManagementPortal.exception.EventNotFoundException;
+import com.Capstone.EventManagementPortal.exception.UserNotFoundException;
 import com.Capstone.EventManagementPortal.model.Event;
 import com.Capstone.EventManagementPortal.model.User;
 import com.Capstone.EventManagementPortal.repository.EventRepository;
@@ -67,6 +68,19 @@ public class EventServiceImpl implements EventService {
     public List<Event> getAllEvents() {
         return eventRepository.findAll();
     }
+
+    @Override
+    public List<EventDTO> getEventsByOrganizer(String email) {
+        User organizer = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Organizer not found"));
+
+        List<Event> events = eventRepository.findByOrganizer_Id(organizer.getId()); // Fetch events
+        return events.stream()
+                .map(EventDTO::new) // Convert Entity to DTO
+                .collect(Collectors.toList());
+    }
+
+
 
     @Override
     public Event getEventById(Long eventId) {

@@ -6,6 +6,7 @@ import com.Capstone.EventManagementPortal.security.jwt.JwtUtil;
 import com.Capstone.EventManagementPortal.service.EventService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -63,6 +64,15 @@ public class EventController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(events);
     }
+
+    @PreAuthorize("hasAuthority('ORGANIZER')")
+    @GetMapping("/organizer")
+    public ResponseEntity<List<EventDTO>> getOrganizerEvents(Authentication authentication) {
+        String organizerEmail = authentication.getName(); // Get logged-in organizer's email
+        List<EventDTO> events = eventService.getEventsByOrganizer(organizerEmail);
+        return ResponseEntity.ok(events);
+    }
+
 
     // ✅ Get Event by ID
     @GetMapping("/{id}")
