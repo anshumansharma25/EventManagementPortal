@@ -7,55 +7,66 @@
     <link rel="stylesheet" href="/css/index.css">
 </head>
 <body>
-<header>
-    <h1>Event Management Platform</h1>
-    <nav>
-        <ul id="nav-links">
-            <li><a href="#" id="logout-btn" style="display: none;">Logout</a></li>
+<header class="header">
+    <h1 class="header-title">Event Management Platform</h1>
+    <nav class="nav">
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a href="#" id="logout-btn" class="nav-link">Logout</a>
+            </li>
         </ul>
     </nav>
 </header>
 
-<!-- Section for Unregistered Users -->
-<section id="guest-section">
-    <h2>Welcome to the Event Management Platform</h2>
-    <p>Discover and book exciting events, or create and manage your own.</p>
-    <div class="auth-buttons">
-        <a href="login.html" class="btn">Login</a>
-        <a href="register.html" class="btn">Register</a>
-    </div>
-</section>
+<main class="main-content">
+    <!-- Guest Section -->
+    <section id="guest-section" class="section guest-section">
+        <h2 class="section-title">Welcome to the Event Management Platform</h2>
+        <p class="section-description">Discover and book exciting events, or create and manage your own.</p>
+        <div class="auth-buttons">
+            <a href="login.html" class="btn btn-primary">Login</a>
+            <a href="register.html" class="btn btn-secondary">Register</a>
+        </div>
+    </section>
 
-<!-- Section for Attendees -->
-<section id="attendee-section" style="display: none;">
-    <h2>Available Events</h2>
-    <div id="available-events"></div>
+    <!-- Attendee Section -->
+    <section id="attendee-section" class="section attendee-section">
+        <h2 class="section-title">Available Events</h2>
+        <div id="available-events" class="events-grid"></div>
 
-    <h2>Your Booked Events</h2>
-    <div id="booked-events"></div>
+        <h2 class="section-title">Your Booked Events</h2>
+        <div id="booked-events" class="events-grid"></div>
+    </section>
 
-    <h2>Event History</h2>
-    <div id="event-history"></div>
-</section>
+    <!-- Organizer Section -->
+    <section id="organizer-section" class="section organizer-section">
+        <h2 class="section-title">Create New Event</h2>
+        <form id="event-form" class="event-form">
+            <div class="form-group">
+                <input type="text" id="event-title" class="form-input" placeholder="Event Title" required>
+            </div>
+            <div class="form-group">
+                <textarea id="event-description" class="form-input" placeholder="Event Description" required></textarea>
+            </div>
+            <div class="form-group">
+                <input type="datetime-local" id="event-date" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <input type="number" id="event-capacity" class="form-input" placeholder="Max Slots" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="event-location" class="form-input" placeholder="Location" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Event</button>
+        </form>
 
-<!-- Section for Organizers -->
-<section id="organizer-section" style="display: none;">
-    <h2>Create New Event</h2>
-    <form id="event-form">
-        <input type="text" id="event-title" placeholder="Event Title" required>
-        <textarea id="event-description" placeholder="Event Description" required></textarea>
-        <input type="datetime-local" id="event-date" required>
-        <input type="number" id="event-capacity" placeholder="Max Slots" required>
-        <input type="text" id="event-location" placeholder="Location" required>
-        <button type="submit">Create Event</button>
-    </form>
+        <h2 class="section-title">Your Events</h2>
+        <div id="organizer-events" class="events-grid"></div>
+    </section>
+</main>
 
-    <h2>Your Events</h2>
-    <div id="organizer-events"></div>
-</section>
-
-<!-- ✅ Booking Message -->
-<div id="booking-message" class="hidden"></div>
+<!-- Booking Message -->
+<div id="booking-message" class="booking-message"></div>
 
 <script src="/js/index.js"></script>
 </body>

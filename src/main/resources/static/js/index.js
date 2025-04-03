@@ -57,23 +57,43 @@ function fetchAvailableEvents() {
 
     eventList.innerHTML = '<div class="loading">Loading events...</div>';
 
+    // First fetch all events
     fetch("/api/events")
         .then(async response => {
             if (!response.ok) throw new Error(await response.text());
             return response.json();
         })
-        .then(data => {
-            eventList.innerHTML = data.map(event => `
-                <div class="event-card">
-                    <h3>${event.title}</h3>
-                    <p>📍 Location: ${event.location}</p>
-                    <p>🗓 Date: ${new Date(event.dateTime).toLocaleString()}</p>
-                    <p>🪑 Slots: ${event.availableSlots} / ${event.maxSlots}</p>
-                    <button class="book-btn" onclick="bookEvent(${event.id})" ${event.availableSlots === 0 ? 'disabled' : ''}>
-                        ${event.availableSlots === 0 ? 'Full' : 'Book'}
-                    </button>
-                </div>
-            `).join("");
+        .then(events => {
+            // Then fetch user's bookings to check which events are booked
+            fetch("/api/bookings/user", {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+            })
+            .then(async bookingsResponse => {
+                if (!bookingsResponse.ok) throw new Error(await bookingsResponse.text());
+                return bookingsResponse.json();
+            })
+            .then(bookings => {
+                const bookedEventIds = bookings.map(b => b.eventId);
+
+                eventList.innerHTML = events.map(event => `
+                    <div class="event-card">
+                        <h3>${event.title}</h3>
+                        <p>📍 Location: ${event.location}</p>
+                        <p>🗓 Date: ${new Date(event.dateTime).toLocaleString()}</p>
+                        <p>🪑 Slots: ${event.availableSlots} / ${event.maxSlots}</p>
+                        <button class="book-btn"
+                            onclick="bookEvent(${event.id})"
+                            ${event.availableSlots === 0 || bookedEventIds.includes(event.id) ? 'disabled' : ''}>
+                            ${event.availableSlots === 0 ? 'FULL' :
+                             bookedEventIds.includes(event.id) ? 'BOOKED' : 'BOOK'}
+                        </button>
+                    </div>
+                `).join("");
+            })
+            .catch(error => {
+                console.error("Error loading bookings:", error);
+                eventList.innerHTML = `<div class="error">Failed to load events</div>`;
+            });
         })
         .catch(error => {
             console.error("Error loading events:", error);
@@ -89,8 +109,10 @@ async function bookEvent(eventId) {
     }
 
     try {
+        // Clear previous messages and set loading state
         messageElement.textContent = "Processing booking...";
-        messageElement.style.color = "inherit";
+        messageElement.style.color = "blue";
+        messageElement.style.display = "block";
 
         const response = await fetch("/api/bookings", {
             method: "POST",
@@ -102,19 +124,24 @@ async function bookEvent(eventId) {
         });
 
         if (!response.ok) {
-            const error = await response.json().catch(() => ({ message: "Unknown error" }));
-            throw new Error(error.message || "Booking failed");
+            const error = await response.json().catch(() => ({ message: "Booking failed" }));
+            throw new Error(error.message);
         }
 
         const bookingData = await response.json();
+
+        // Show success message
         messageElement.textContent = "✓ Booking successful!";
         messageElement.style.color = "green";
+
+        // Hide message after 3 seconds
+        setTimeout(() => {
+            messageElement.style.display = "none";
+        }, 3000);
 
         // Refresh both available and booked events
         fetchAvailableEvents();
         fetchBookedEvents();
-
-        console.log("Booking created:", bookingData);
 
     } catch (error) {
         messageElement.textContent = `✗ ${error.message}`;
