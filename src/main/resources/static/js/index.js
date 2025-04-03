@@ -167,45 +167,101 @@ async function fetchBookedEvents() {
     const eventList = document.getElementById("booked-events");
     if (!eventList) return;
 
-    eventList.innerHTML = '<div class="loading">Loading your bookings...</div>';
-
     try {
+        eventList.innerHTML = `
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading your bookings...</p>
+            </div>
+        `;
+
         const response = await fetch("/api/bookings/user", {
             headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                'Content-Type': 'application/json'
             }
         });
 
         if (!response.ok) {
-            throw new Error(await response.text());
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `HTTP error! Status: ${response.status}`);
         }
 
         const bookings = await response.json();
 
-        // Get event details for each booking
-        const events = await Promise.all(
-            bookings.map(booking => getEventDetails(booking.eventId))
-        ).catch(() => []);
+        if (!Array.isArray(bookings)) {
+            throw new Error("Invalid bookings data received");
+        }
 
-        if (events.length === 0) {
-            eventList.innerHTML = '<div class="empty">No bookings found</div>';
+        // Handle empty state
+        if (bookings.length === 0) {
+            eventList.innerHTML = `
+                <div class="empty-state">
+                    <p>You haven't booked any events yet</p>
+                    <a href="/events" class="btn">Browse Events</a>
+                </div>
+            `;
             return;
         }
 
-        eventList.innerHTML = events.map(event => `
-            <div class="event-card booked">
-                <h3>${event.title}</h3>
-                <p>📅 Date: ${new Date(event.dateTime).toLocaleString()}</p>
-                <p>📍 Location: ${event.location}</p>
-                <p>🪑 Slots: ${event.availableSlots} / ${event.maxSlots}</p>
-            </div>
-        `).join("");
+        // Render bookings
+        eventList.innerHTML = bookings.map(booking => {
+            const status = booking.status?.toUpperCase() || 'CONFIRMED';
+            const isCancelled = status === 'EVENT_CANCELLED';
+            const eventDate = booking.eventDate ? new Date(booking.eventDate) : null;
+            const formattedDate = eventDate ?
+                eventDate.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'Date not specified';
+
+            return `
+                <div class="booking-card ${isCancelled ? 'cancelled' : ''}">
+                    <div class="booking-header">
+                        <h3 class="event-title">${escapeHtml(booking.eventTitle || 'Untitled Event')}</h3>
+                        <div class="status-badge ${isCancelled ? 'cancelled' : 'confirmed'}">
+                            ${isCancelled ? 'Event Cancelled' : 'Confirmed'}
+                        </div>
+                    </div>
+                    <div class="booking-details">
+                        <p class="booking-date">📅 ${formattedDate}</p>
+                        <p class="booking-location">📍 ${escapeHtml(booking.location || 'Location not specified')}</p>
+                    </div>
+                </div>
+            `;
+        }).join("");
 
     } catch (error) {
-        console.error("Failed to fetch booked events:", error);
-        eventList.innerHTML = `<div class="error">Failed to load bookings: ${error.message}</div>`;
+        console.error("Booking load error:", error);
+        eventList.innerHTML = `
+            <div class="error-state">
+                <img src="/images/error-icon.svg" alt="Error">
+                <p>Failed to load bookings</p>
+                <p class="error-detail">${escapeHtml(error.message)}</p>
+                <button onclick="fetchBookedEvents()" class="retry-btn">
+                    Retry
+                </button>
+            </div>
+        `;
     }
 }
+
+// Helper function to prevent XSS
+function escapeHtml(unsafe) {
+    return unsafe?.replace(/[&<>"']/g, match => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[match])) || '';
+}
+
+
+
 
 function fetchOrganizerEvents() {
     const eventList = document.getElementById("organizer-events");
@@ -285,4 +341,31 @@ function createEvent() {
         }
         console.error("Event creation error:", error);
     });
+}
+
+function renderBooking(booking) {
+    // Determine status class and text
+    const isCancelled = booking.status === 'EVENT_CANCELLED' || booking.isCancelled;
+    const statusClass = isCancelled ? 'status-cancelled' : 'status-confirmed';
+    const statusText = booking.status === 'EVENT_CANCELLED'
+        ? 'Event Cancelled'
+        : booking.isCancelled
+            ? 'Booking Cancelled'
+            : 'Confirmed';
+
+    // Create booking card HTML
+    return `
+        <div class="booking-card ${statusClass}">
+            <h3>${booking.eventTitle || 'Untitled Event'}</h3>
+            <p class="booking-date">📅 ${booking.eventDate ? new Date(booking.eventDate).toLocaleString() : 'Date not available'}</p>
+            <p class="booking-location">📍 ${booking.location || 'Location not specified'}</p>
+            <div class="status-badge ${statusClass}">${statusText}</div>
+
+            ${!isCancelled ? `
+                <button onclick="cancelBooking('${booking.id}')" class="cancel-btn">
+                    Cancel Booking
+                </button>
+            ` : ''}
+        </div>
+    `;
 }

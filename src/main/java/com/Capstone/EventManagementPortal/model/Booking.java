@@ -27,7 +27,7 @@ public class Booking {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "booking_status", nullable = false)
-    private BookingStatus bookingStatus = BookingStatus.Confirmed;
+    private BookingStatus status = BookingStatus.Confirmed;
 
     @Column(name = "booking_time", nullable = false)
     private LocalDateTime bookingTime;
@@ -36,14 +36,23 @@ public class Booking {
     private boolean isCancelled = false; // ✅ Default to false
 
 
-    // Ensure bookingTime is set on creation
     @PrePersist
     public void prePersist() {
         if (bookingTime == null) {
             bookingTime = LocalDateTime.now();
         }
-        if (bookingStatus == null) {
-            bookingStatus = BookingStatus.Confirmed; // Always set new bookings to CONFIRMED
+        if (status == null) {
+            status = BookingStatus.Confirmed;
         }
     }
+
+
+    public BookingStatus getStatus() {
+        return status != null ? status : BookingStatus.Confirmed;
+    }
+
+    public void setStatus(BookingStatus status) {
+        this.status = status != null ? status : BookingStatus.Confirmed;
+    }
+
 }

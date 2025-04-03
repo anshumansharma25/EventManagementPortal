@@ -12,9 +12,6 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 
 
 import java.time.LocalDateTime;
@@ -39,6 +36,7 @@ public class BookingServiceImpl implements BookingService {
     // ✅ 1️⃣ Create a booking (Only ATTENDEES can book)
 
     @Transactional
+    @Override
     public Booking createBooking(@NotNull BookingDTO bookingDTO, Long userId) {
         Event event = eventRepository.findById(bookingDTO.getEventId())
                 .orElseThrow(() -> new EventNotFoundException("Event not found"));
@@ -53,7 +51,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = new Booking();
         booking.setEvent(event);
         booking.setUser(user);
-        booking.setBookingStatus(BookingStatus.Confirmed);
+        booking.setStatus(BookingStatus.Confirmed);
         booking.setCancelled(false);
         booking.setBookingTime(LocalDateTime.now());
 
@@ -116,25 +114,22 @@ public class BookingServiceImpl implements BookingService {
 
     // ✅ 6️⃣ Cancel a booking (Only the user who booked can cancel)
     @Override
+    @Transactional
     public void cancelBooking(Long bookingId, String userEmail) {
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found!"));
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         if (!booking.getUser().getEmail().equals(userEmail)) {
             throw new RuntimeException("You can only cancel your own bookings.");
         }
 
-        // Free up the slot in the event
+        booking.setStatus(BookingStatus.Event_cancelled);
+        booking.setCancelled(true);
+        bookingRepository.save(booking);
+
+
         Event event = booking.getEvent();
         event.setAvailableSlots(event.getAvailableSlots() + 1);
-
-        // ✅ Directly save the updated event (instead of calling updateEvent)
         eventRepository.save(event);
-
-        // Delete the booking
-        bookingRepository.delete(booking);
-
-
-
     }
 }

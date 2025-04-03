@@ -12,7 +12,7 @@ public interface EventService {
 
     Optional<Event> updateEvent(Long eventId, Event eventDetails, String organizerEmail);
 
-    void deleteEvent(Long eventId, String organizerEmail);
+    void cancelEvent(Long eventId, String organizerEmail);
 
     List<Event> getAllEvents(); // Ensure this returns a list of Event, not Optional<Event>
 

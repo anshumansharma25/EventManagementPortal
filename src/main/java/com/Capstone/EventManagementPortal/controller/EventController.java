@@ -50,11 +50,22 @@ public class EventController {
     }
 
     // ✅ Delete Event (Only Organizer of the Event)
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteEvent(@PathVariable Long id, Authentication authentication) {
-        eventService.deleteEvent(id, authentication.getName());
-        return ResponseEntity.ok("Event deleted successfully.");
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<String> deleteEvent(@PathVariable Long id, Authentication authentication) {
+//        eventService.deleteEvent(id, authentication.getName());
+//        return ResponseEntity.ok("Event deleted successfully.");
+//    }
+
+    @DeleteMapping("/{eventId}")
+    @PreAuthorize("hasRole('ORGANIZER')")
+    public ResponseEntity<String> cancelEvent(
+            @PathVariable Long eventId,
+            Authentication authentication
+    ) {
+        eventService.cancelEvent(eventId, authentication.getName());
+        return ResponseEntity.ok("Event and all associated bookings cancelled");
     }
+
 
     @GetMapping
     public ResponseEntity<List<EventDTO>> getAllEvents() {

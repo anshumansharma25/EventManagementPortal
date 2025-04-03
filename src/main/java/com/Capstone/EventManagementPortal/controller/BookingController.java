@@ -119,6 +119,7 @@ public class BookingController {
         return ResponseEntity.ok("Booking cancelled successfully!");
     }
 
+
     private BookingResponseDTO convertToResponseDTO(Booking booking) {
         BookingResponseDTO dto = new BookingResponseDTO();
         dto.setId(booking.getId());
@@ -127,7 +128,7 @@ public class BookingController {
         dto.setEventDate(booking.getEvent().getDateTime());
         dto.setLocation(booking.getEvent().getLocation());
         dto.setBookingTime(booking.getBookingTime());
-        dto.setBookingStatus(booking.getBookingStatus());
+        dto.setBookingStatus(booking.getStatus());
         return dto;
     }
 }

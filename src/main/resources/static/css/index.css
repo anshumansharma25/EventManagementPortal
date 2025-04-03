@@ -231,6 +231,82 @@ textarea.form-input {
     display: none !important;
 }
 
+/* Status badges */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    display: inline-block;
+    margin: 0.5rem 0;
+}
+
+.status-badge.confirmed {
+    background-color: #e6f7ee;
+    color: #0a8f4e;
+}
+
+.status-badge.cancelled {
+    background-color: #feeceb;
+    color: #d93829;
+}
+
+.event-card.cancelled {
+    opacity: 0.7;
+    background-color: #f9f9f9;
+}
+
+.cancel-btn {
+    background: none;
+    border: 1px solid #d93829;
+    color: #d93829;
+    padding: 0.5rem 1rem;
+    margin-top: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.cancel-btn:hover {
+    background-color: #feeceb;
+}
+
+
+/* Booking Card Styles */
+.booking-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.booking-card.cancelled {
+    opacity: 0.8;
+    background-color: #f9f9f9;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 0.5rem 0;
+}
+
+.status-confirmed {
+    background-color: #e6f7ee;
+    color: #0a8f4e;
+}
+
+.status-cancelled {
+    background-color: #feeceb;
+    color: #d93829;
+}
+
+
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .events-grid {

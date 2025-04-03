@@ -1,5 +1,6 @@
 package com.Capstone.EventManagementPortal.dto;
 
+import com.Capstone.EventManagementPortal.model.Booking;
 import com.Capstone.EventManagementPortal.model.BookingStatus;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,4 +17,20 @@ public class BookingResponseDTO {
     private String location;
     private LocalDateTime bookingTime;
     private BookingStatus bookingStatus;
+    private boolean isEventCancelled;
+    @Getter
+    private String statusDisplay;
+
+    public BookingResponseDTO() {
+    }
+
+    public BookingResponseDTO(Booking booking) {
+        // ... other mappings ...
+        this.isEventCancelled = booking.getStatus() == BookingStatus.Event_cancelled;
+        this.statusDisplay =  booking.getStatus().toString();
+    }
+    public boolean isEventCancelled() {
+        return isEventCancelled;
+    }
+
 }

@@ -51,7 +51,13 @@ public class Event {
     @JoinColumn(name = "organizer_id", nullable = false)
     private User organizer;
 
-    // ✅ Ensure date validation is applied when setting event date
+    @Column(name = "is_cancelled", nullable = false, columnDefinition = "boolean default false")
+    private Boolean isCancelled = false;
+
+    public Boolean isCancelled() {
+        return isCancelled;
+    }
+
     public void setDateTime(LocalDateTime dateTime) {
         if (dateTime.isBefore(LocalDateTime.now().plusHours(24))) {
             throw new IllegalArgumentException("Events must be scheduled at least 24 hours in advance");
@@ -59,7 +65,10 @@ public class Event {
         this.dateTime = dateTime;
     }
 
-    // ✅ Ensure availableSlots is initialized correctly
+    public void setCancelled(Boolean cancelled) {
+        isCancelled = cancelled;
+    }
+
     public void setMaxSlots(int maxSlots) {
         if (maxSlots <= 0) {
             throw new IllegalArgumentException("Max slots must be greater than zero");
