@@ -4,6 +4,7 @@ import com.Capstone.EventManagementPortal.model.Event;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 public class EventDTO {
@@ -15,7 +16,10 @@ public class EventDTO {
     private String description;
     @Getter
     private String category;
+    @Getter
     private LocalDateTime dateTime;
+    @Getter
+    private String formattedDateTime;
     @Getter
     private String location;
     @Getter
@@ -33,8 +37,16 @@ public class EventDTO {
         this.location = event.getLocation();
         this.maxSlots = event.getMaxSlots();
         this.availableSlots = event.getAvailableSlots();
-        this.organizerEmail = event.getOrganizer().getEmail(); // Ensure organizer is not null
+        this.organizerEmail = event.getOrganizer().getEmail();
+        this.formattedDateTime = formatDateTime(event.getDateTime());
     }
-
+    private String formatDateTime(LocalDateTime dateTime) {
+        if (dateTime == null) return "Date not set";
+        return dateTime.format(DateTimeFormatter.ofPattern("EEE, MMM d yyyy 'at' h:mm a"));
+    }
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
+        this.formattedDateTime = formatDateTime(dateTime);
+    }
 
 }

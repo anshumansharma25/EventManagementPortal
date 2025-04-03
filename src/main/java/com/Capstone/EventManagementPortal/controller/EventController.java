@@ -56,13 +56,13 @@ public class EventController {
         return ResponseEntity.ok("Event deleted successfully.");
     }
 
-    // ✅ Get All Events
     @GetMapping
     public ResponseEntity<List<EventDTO>> getAllEvents() {
-        List<EventDTO> events = eventService.getAllEvents().stream()
-                .map(EventDTO::new)
+        List<Event> events = eventService.getAllEvents();
+        List<EventDTO> eventDTOs = events.stream()
+                .map(EventDTO::new)  // This will use your constructor
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(events);
+        return ResponseEntity.ok(eventDTOs);
     }
 
     @PreAuthorize("hasAuthority('ORGANIZER')")

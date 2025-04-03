@@ -1,5 +1,6 @@
 package com.Capstone.EventManagementPortal.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Future;
 import lombok.*;
@@ -31,6 +32,11 @@ public class Event {
     @Column(nullable = false)
     @Future(message = "Event date must be in the future")
     private LocalDateTime dateTime;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
 
     @Column(nullable = false)
     private int maxSlots;

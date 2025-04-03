@@ -78,13 +78,13 @@ function fetchAvailableEvents() {
                 eventList.innerHTML = events.map(event => `
                     <div class="event-card">
                         <h3>${event.title}</h3>
-                        <p>📍 Location: ${event.location}</p>
-                        <p>🗓 Date: ${new Date(event.dateTime).toLocaleString()}</p>
-                        <p>🪑 Slots: ${event.availableSlots} / ${event.maxSlots}</p>
+                        <p class="event-date">📅 ${event.formattedDateTime || 'Date not available'}</p>
+                        <p>📍 ${event.location}</p>
+                        <p>🪑 ${event.availableSlots}/${event.maxSlots} slots available</p>
                         <button class="book-btn"
                             onclick="bookEvent(${event.id})"
-                            ${event.availableSlots === 0 || bookedEventIds.includes(event.id) ? 'disabled' : ''}>
-                            ${event.availableSlots === 0 ? 'FULL' :
+                            ${event.availableSlots <= 0 || bookedEventIds.includes(event.id) ? 'disabled' : ''}>
+                            ${event.availableSlots <= 0 ? 'FULL' :
                              bookedEventIds.includes(event.id) ? 'BOOKED' : 'BOOK'}
                         </button>
                     </div>
@@ -92,7 +92,20 @@ function fetchAvailableEvents() {
             })
             .catch(error => {
                 console.error("Error loading bookings:", error);
-                eventList.innerHTML = `<div class="error">Failed to load events</div>`;
+                // Still show events even if bookings failed to load
+                eventList.innerHTML = events.map(event => `
+                    <div class="event-card">
+                        <h3>${event.title}</h3>
+                        <p class="event-date">📅 ${event.formattedDateTime || 'Date not available'}</p>
+                        <p>📍 ${event.location}</p>
+                        <p>🪑 ${event.availableSlots}/${event.maxSlots} slots available</p>
+                        <button class="book-btn"
+                            onclick="bookEvent(${event.id})"
+                            ${event.availableSlots <= 0 ? 'disabled' : ''}>
+                            ${event.availableSlots <= 0 ? 'FULL' : 'BOOK'}
+                        </button>
+                    </div>
+                `).join("");
             });
         })
         .catch(error => {
