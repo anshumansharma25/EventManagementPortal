@@ -287,25 +287,28 @@ function showError(element, message) {
 }
 
 
-function fetchOrganizerEvents() {
-    const eventList = document.getElementById("organizer-events");
+async function fetchOrganizerEvents() {
+    const eventList = document.getElementById('organizer-events');
     if (!eventList) return;
 
     eventList.innerHTML = '<div class="loading">Loading your events...</div>';
 
-    fetch("/api/events/organizer", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-    })
-    .then(async response => {
+    try {
+        const response = await fetch('/api/events/organizer', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
         if (!response.ok) throw new Error(await response.text());
-        return response.json();
-    })
-    .then(events => {
+
+        const events = await response.json();
+
         if (events.length === 0) {
             eventList.innerHTML = `
                 <div class="empty-state">
                     <p>You haven't created any events yet</p>
-                    <button onclick="document.getElementById('create-event-form').style.display='block'">
+                    <button onclick="document.getElementById('event-form').style.display='block'">
                         Create Your First Event
                     </button>
                 </div>
@@ -313,37 +316,8 @@ function fetchOrganizerEvents() {
             return;
         }
 
-        eventList.innerHTML = events.map(event => `
-            <div class="event-card" data-event-id="${event.id}">
-                <div class="event-header">
-                    <h3>${escapeHtml(event.title)}</h3>
-                    <span class="event-status ${event.cancelled ? 'cancelled' : 'active'}">
-                        ${event.cancelled ? 'Cancelled' : 'Active'}
-                    </span>
-                </div>
-                <div class="event-body">
-                    <p class="event-description">${escapeHtml(event.description || 'No description available')}</p>
-                    <div class="event-details">
-                        <p><i class="fas fa-calendar-alt"></i> ${formatDate(event.dateTime)}</p>
-                        <p><i class="fas fa-map-marker-alt"></i> ${escapeHtml(event.location)}</p>
-                        <p><i class="fas fa-ticket-alt"></i> ${event.availableSlots}/${event.maxSlots} slots available</p>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <button class="btn update-btn" onclick="openUpdateModal(${event.id})">
-                        <i class="fas fa-edit"></i> Update
-                    </button>
-                    ${!event.cancelled ? `
-                        <button class="btn cancel-btn" onclick="cancelEvent(${event.id})">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                    ` : ''}
-                </div>
-            </div>
-        `).join("");
-    })
-    .catch(error => {
-        console.error("Error loading organizer events:", error);
+        eventList.innerHTML = events.map(event => generateOrganizerEventCard(event)).join('');
+    } catch (error) {
         eventList.innerHTML = `
             <div class="error-state">
                 <i class="fas fa-exclamation-triangle"></i>
@@ -354,7 +328,7 @@ function fetchOrganizerEvents() {
                 </button>
             </div>
         `;
-    });
+    }
 }
 
 // Helper functions
@@ -634,6 +608,107 @@ function renderBooking(booking) {
                     Cancel Booking
                 </button>
             ` : ''}
+        </div>
+    `;
+}
+
+// Global variable to store event ID being canceled
+let currentEventIdToCancel = null;
+
+// Function to open cancel confirmation
+function openCancelConfirmation(eventId) {
+    currentEventIdToCancel = eventId;
+    document.getElementById('confirmation-modal').classList.add('active');
+}
+
+// Function to cancel event
+async function cancelEvent() {
+    if (!currentEventIdToCancel) return;
+
+    const messageElement = document.getElementById('event-message');
+    try {
+        messageElement.textContent = "Cancelling event...";
+        messageElement.style.color = "blue";
+        messageElement.style.display = "block";
+
+        const response = await fetch(`/api/events/${currentEventIdToCancel}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            const errorMessage = errorData?.message || 'Failed to cancel event';
+
+            if (response.status === 400 || response.status === 500) {
+                // Handle specific error cases
+                showMessage('event-message', `Error: ${errorMessage} (Please try again)`, 'error');
+            } else {
+                throw new Error(errorMessage);
+            }
+            return;
+        }
+
+        // Close modal and refresh events
+        document.getElementById('confirmation-modal').classList.remove('active');
+        fetchOrganizerEvents();
+
+        // Show success message
+        showMessage('event-message', 'Event and all associated bookings cancelled successfully!', 'success');
+    } catch (error) {
+        console.error('Cancellation error:', error);
+        showMessage('event-message', `Error: ${error.message}`, 'error');
+    } finally {
+        currentEventIdToCancel = null;
+    }
+}
+
+// Event listeners for confirmation modal
+document.getElementById('confirm-cancel-btn').addEventListener('click', cancelEvent);
+document.getElementById('cancel-confirm-btn').addEventListener('click', function() {
+    document.getElementById('confirmation-modal').classList.remove('active');
+    currentEventIdToCancel = null;
+});
+
+// Update your event card generation to include cancel button
+function generateOrganizerEventCard(event) {
+    return `
+        <div class="event-card" data-event-id="${event.id}">
+            <div class="event-header">
+                <h3 class="event-title">${escapeHtml(event.title)}</h3>
+                <span class="event-status ${event.cancelled ? 'cancelled' : 'active'}">
+                    ${event.cancelled ? 'Cancelled' : 'Active'}
+                </span>
+            </div>
+            <div class="event-body">
+                <p class="event-description">${escapeHtml(event.description || 'No description available')}</p>
+                <div class="event-details">
+                    <p class="event-detail">
+                        <i class="fas fa-calendar-alt"></i>
+                        ${formatDate(event.dateTime)}
+                    </p>
+                    <p class="event-detail">
+                        <i class="fas fa-map-marker-alt"></i>
+                        ${escapeHtml(event.location)}
+                    </p>
+                    <p class="event-detail">
+                        <i class="fas fa-ticket-alt"></i>
+                        ${event.availableSlots}/${event.maxSlots} slots available
+                    </p>
+                </div>
+            </div>
+            <div class="event-actions">
+                <button class="update-btn" onclick="openUpdateModal(${event.id})">
+                    <i class="fas fa-edit"></i> Update
+                </button>
+                ${!event.cancelled ? `
+                    <button class="cancel-event-btn" onclick="openCancelConfirmation(${event.id})">
+                        <i class="fas fa-times"></i> Cancel Event
+                    </button>
+                ` : ''}
+            </div>
         </div>
     `;
 }

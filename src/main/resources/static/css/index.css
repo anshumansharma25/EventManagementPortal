@@ -306,11 +306,56 @@ button[type="submit"]:hover {
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.9rem;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
+    margin-left: 0.5rem;
 }
 
 .cancel-btn:hover {
     background-color: #c0392b;
+}
+
+/* Confirmation Modal */
+.confirmation-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1100;
+}
+
+.confirmation-modal.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.confirmation-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+}
+
+.confirmation-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.confirm-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.cancel-btn {
+    background-color: #95a5a6;
+    color: white;
 }
 
 /* ===== BOOKING CARDS ===== */

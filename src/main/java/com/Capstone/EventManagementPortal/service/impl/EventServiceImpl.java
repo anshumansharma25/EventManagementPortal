@@ -3,6 +3,7 @@ package com.Capstone.EventManagementPortal.service.impl;
 import com.Capstone.EventManagementPortal.dto.EventDTO;
 import com.Capstone.EventManagementPortal.dto.EventUpdateDTO;
 import com.Capstone.EventManagementPortal.exception.EventNotFoundException;
+import com.Capstone.EventManagementPortal.exception.ResourceNotFoundException;
 import com.Capstone.EventManagementPortal.exception.UnauthorizedException;
 import com.Capstone.EventManagementPortal.exception.UserNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
@@ -101,21 +102,21 @@ public class EventServiceImpl implements EventService {
     @Override
     public void cancelEvent(Long eventId, String organizerEmail) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EventNotFoundException("Event not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Event with ID " + eventId + " not found"));
 
         if (!event.getOrganizer().getEmail().equals(organizerEmail)) {
-            throw new UnauthorizedException("Only the organizer can cancel this event");
+            throw new UnauthorizedException("You are not authorized to cancel this event");
         }
 
-        // Mark event as cancelled
         event.setCancelled(true);
         eventRepository.save(event);
 
-        bookingRepository.findByEventId(eventId).forEach(booking -> {
-            booking.setStatus(BookingStatus.Event_cancelled);
+        List<Booking> bookings = bookingRepository.findByEventId(eventId);
+        for (Booking booking : bookings) {
             booking.setCancelled(true);
+            booking.setStatus(BookingStatus.Event_cancelled);
             bookingRepository.save(booking);
-        });
+        }
     }
 
     @Override
