@@ -125,6 +125,7 @@ public class BookingController {
         dto.setId(booking.getId());
         dto.setEventId(booking.getEvent().getId());
         dto.setEventTitle(booking.getEvent().getTitle());
+        dto.setEventDescription(booking.getEvent().getDescription());
         dto.setEventDate(booking.getEvent().getDateTime());
         dto.setLocation(booking.getEvent().getLocation());
         dto.setBookingTime(booking.getBookingTime());

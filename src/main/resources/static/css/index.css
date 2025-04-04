@@ -305,7 +305,11 @@ textarea.form-input {
     color: #d93829;
 }
 
-
+.event-description {
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {

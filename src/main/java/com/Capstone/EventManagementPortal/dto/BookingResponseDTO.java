@@ -13,6 +13,9 @@ public class BookingResponseDTO {
     private Long id;
     private Long eventId;
     private String eventTitle;
+    @Setter
+    @Getter
+    private String eventDescription;
     private LocalDateTime eventDate;
     private String location;
     private LocalDateTime bookingTime;

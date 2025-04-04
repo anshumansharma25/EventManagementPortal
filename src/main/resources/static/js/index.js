@@ -222,6 +222,7 @@ async function fetchBookedEvents() {
                 <div class="booking-card ${isCancelled ? 'cancelled' : ''}">
                     <div class="booking-header">
                         <h3 class="event-title">${escapeHtml(booking.eventTitle || 'Untitled Event')}</h3>
+                                <p class="event-description">${escapeHtml(booking.eventDescription || 'No description available')}</p>
                         <div class="status-badge ${isCancelled ? 'cancelled' : 'confirmed'}">
                             ${isCancelled ? 'Event Cancelled' : 'Confirmed'}
                         </div>
@@ -357,6 +358,7 @@ function renderBooking(booking) {
     return `
         <div class="booking-card ${statusClass}">
             <h3>${booking.eventTitle || 'Untitled Event'}</h3>
+            <p class="event-description">${escapeHtml(booking.eventDescription || 'No description available')}</p>
             <p class="booking-date">📅 ${booking.eventDate ? new Date(booking.eventDate).toLocaleString() : 'Date not available'}</p>
             <p class="booking-location">📍 ${booking.location || 'Location not specified'}</p>
             <div class="status-badge ${statusClass}">${statusText}</div>
