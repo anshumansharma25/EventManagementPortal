@@ -261,7 +261,12 @@ function escapeHtml(unsafe) {
     }[match])) || '';
 }
 
-
+function showError(element, message) {
+    if (element) {
+        element.textContent = `✗ ${message}`;
+        element.style.color = "red";
+    }
+}
 
 
 function fetchOrganizerEvents() {
@@ -277,72 +282,315 @@ function fetchOrganizerEvents() {
         if (!response.ok) throw new Error(await response.text());
         return response.json();
     })
-    .then(data => {
-        eventList.innerHTML = data.map(event => `
-            <div class="event-card">
-                <h3>${event.title}</h3>
-                <p>📅 Date: ${new Date(event.dateTime).toLocaleString()}</p>
-                <p>🪑 Slots: ${event.availableSlots} / ${event.maxSlots}</p>
-                <button onclick="updateEvent(${event.id})">Update</button>
-                <button onclick="cancelEvent(${event.id})">Cancel</button>
+    .then(events => {
+        if (events.length === 0) {
+            eventList.innerHTML = `
+                <div class="empty-state">
+                    <p>You haven't created any events yet</p>
+                    <button onclick="document.getElementById('create-event-form').style.display='block'">
+                        Create Your First Event
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        eventList.innerHTML = events.map(event => `
+            <div class="event-card" data-event-id="${event.id}">
+                <div class="event-header">
+                    <h3>${escapeHtml(event.title)}</h3>
+                    <span class="event-status ${event.cancelled ? 'cancelled' : 'active'}">
+                        ${event.cancelled ? 'Cancelled' : 'Active'}
+                    </span>
+                </div>
+                <div class="event-body">
+                    <p class="event-description">${escapeHtml(event.description || 'No description available')}</p>
+                    <div class="event-details">
+                        <p><i class="fas fa-calendar-alt"></i> ${formatDate(event.dateTime)}</p>
+                        <p><i class="fas fa-map-marker-alt"></i> ${escapeHtml(event.location)}</p>
+                        <p><i class="fas fa-ticket-alt"></i> ${event.availableSlots}/${event.maxSlots} slots available</p>
+                    </div>
+                </div>
+                <div class="event-actions">
+                    <button class="btn update-btn" onclick="openUpdateModal(${event.id})">
+                        <i class="fas fa-edit"></i> Update
+                    </button>
+                    ${!event.cancelled ? `
+                        <button class="btn cancel-btn" onclick="cancelEvent(${event.id})">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    ` : ''}
+                </div>
             </div>
         `).join("");
     })
     .catch(error => {
         console.error("Error loading organizer events:", error);
-        eventList.innerHTML = `<div class="error">Failed to load events: ${error.message}</div>`;
+        eventList.innerHTML = `
+            <div class="error-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Failed to load events</p>
+                <p class="error-message">${escapeHtml(error.message)}</p>
+                <button onclick="fetchOrganizerEvents()" class="retry-btn">
+                    <i class="fas fa-sync-alt"></i> Try Again
+                </button>
+            </div>
+        `;
     });
+}
+
+// Helper functions
+function formatDate(dateString) {
+    if (!dateString) return 'Date not set';
+    const options = {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+}
+
+function escapeHtml(unsafe) {
+    return unsafe?.replace(/[&<>"']/g, match => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[match])) || '';
 }
 
 function createEvent() {
     const form = document.getElementById("event-form");
     if (!form) return;
 
+    // Get form elements
+    const titleInput = document.getElementById("event-title");
+    const descriptionInput = document.getElementById("event-description");
+    const dateInput = document.getElementById("event-date");
+    const timeInput = document.getElementById("event-time");
+    const capacityInput = document.getElementById("event-capacity");
+    const locationInput = document.getElementById("event-location");
+    const categoryInput = document.getElementById("event-category");
     const messageElement = document.getElementById("event-message");
+
+    // Clear previous messages
     if (messageElement) {
-        messageElement.textContent = "Creating event...";
+        messageElement.textContent = "";
         messageElement.style.color = "inherit";
     }
 
-    const eventDetails = {
-        title: document.getElementById("event-title").value,
-        description: document.getElementById("event-description").value,
-        dateTime: document.getElementById("event-date").value,
-        maxSlots: document.getElementById("event-capacity").value,
-        location: document.getElementById("event-location").value
-    };
-
-    fetch("/api/events/create", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify(eventDetails)
-    })
-    .then(async response => {
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({ message: "Unknown error" }));
-            throw new Error(error.message || "Event creation failed");
+    // Validate inputs
+    try {
+        // Required field validation
+        if (!titleInput.value.trim()) {
+            showError(messageElement, "Event title is required");
+            return;
         }
+        if (!descriptionInput.value.trim()) {
+            showError(messageElement, "Description is required");
+            return;
+        }
+        if (!dateInput.value || !timeInput.value) {
+            showError(messageElement, "Date and time are required");
+            return;
+        }
+        if (!capacityInput.value) {
+            showError(messageElement, "Capacity is required");
+            return;
+        }
+        if (!locationInput.value.trim()) {
+            showError(messageElement, "Location is required");
+            return;
+        }
+        if (!categoryInput.value.trim()) {
+            showError(messageElement, "Category is required");
+            return;
+        }
+
+        // Numeric validation
+        const maxSlots = parseInt(capacityInput.value);
+        if (isNaN(maxSlots)) {
+            showError(messageElement, "Capacity must be a number");
+            return;
+        }
+        if (maxSlots <= 0) {
+            showError(messageElement, "Capacity must be greater than 0");
+            return;
+        }
+
+        // Date/time validation
+        const eventDateTime = new Date(`${dateInput.value}T${timeInput.value}`);
+        const now = new Date();
+        if (eventDateTime <= now) {
+            showError(messageElement, "Event date/time must be in the future");
+            return;
+        }
+
+        // Prepare payload
+        const eventDetails = {
+            title: titleInput.value.trim(),
+            description: descriptionInput.value.trim(),
+            dateTime: eventDateTime.toISOString(),
+            maxSlots: maxSlots,
+            location: locationInput.value.trim(),
+            category: categoryInput.value.trim()
+        };
+
+        // Show loading state
+        if (messageElement) {
+            messageElement.textContent = "Creating event...";
+            messageElement.style.color = "inherit";
+        }
+
+        // API call
+        fetch("/api/events/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+            body: JSON.stringify(eventDetails)
+        })
+        .then(async response => {
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ message: "Event creation failed" }));
+                throw new Error(error.message || "Unknown error occurred");
+            }
+            return response.json();
+        })
+        .then(() => {
+            if (messageElement) {
+                messageElement.textContent = "✓ Event created successfully!";
+                messageElement.style.color = "green";
+            }
+            fetchOrganizerEvents();
+            form.reset();
+        })
+        .catch(error => {
+            showError(messageElement, error.message);
+            console.error("Event creation error:", error);
+        });
+
+    } catch (error) {
+        showError(messageElement, error.message);
+        console.error("Validation error:", error);
+    }
+}
+
+// Open modal with event data
+function openUpdateModal(eventId) {
+    fetch(`/api/events/${eventId}`, {
+        headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Failed to fetch event');
         return response.json();
     })
-    .then(() => {
-        if (messageElement) {
-            messageElement.textContent = "✓ Event created successfully!";
-            messageElement.style.color = "green";
+    .then(event => {
+        document.getElementById('update-event-id').value = event.id;
+        document.getElementById('update-event-title').value = event.title;
+        document.getElementById('update-event-description').value = event.description;
+
+        if (event.dateTime) {
+            const date = new Date(event.dateTime);
+            document.getElementById('update-event-date').valueAsDate = date;
+            document.getElementById('update-event-time').value =
+                `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
         }
-        fetchOrganizerEvents();
-        form.reset();
+
+        document.getElementById('update-event-capacity').value = event.maxSlots;
+        document.getElementById('update-event-location').value = event.location;
+        document.getElementById('update-event-category').value = event.category;
+
+        // Show modal
+        document.getElementById('update-event-modal').style.display = 'block';
     })
     .catch(error => {
-        if (messageElement) {
-            messageElement.textContent = `✗ ${error.message}`;
-            messageElement.style.color = "red";
-        }
-        console.error("Event creation error:", error);
+        showMessage('update-event-message', `Error: ${error.message}`, 'error');
     });
 }
+
+// Handle form submission
+document.getElementById('update-event-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    updateEvent();
+});
+
+function updateEvent() {
+    const form = document.getElementById("update-event-form");
+    const messageEl = document.getElementById("update-event-message");
+    const eventId = document.getElementById("update-event-id").value;
+
+    // Get form values
+    const eventData = {
+        title: document.getElementById("update-event-title").value.trim(),
+        description: document.getElementById("update-event-description").value.trim(),
+        dateTime: `${document.getElementById("update-event-date").value}T${document.getElementById("update-event-time").value}:00`,
+        maxSlots: parseInt(document.getElementById("update-event-capacity").value),
+        location: document.getElementById("update-event-location").value.trim(),
+        category: document.getElementById("update-event-category").value.trim()
+    };
+
+    // Clear previous messages
+    messageEl.textContent = '';
+    messageEl.className = 'message';
+
+    // Show loading
+    showMessage('update-event-message', 'Updating event...', 'info');
+
+    fetch(`/api/events/${eventId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify(eventData)
+    })
+    .then(async response => {
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || 'Update failed');
+        }
+        return data;
+    })
+    .then(updatedEvent => {
+        showMessage('update-event-message', 'Event updated successfully!', 'success');
+        // Refresh events list and close modal after delay
+        setTimeout(() => {
+            document.getElementById('update-event-modal').style.display = 'none';
+            fetchOrganizerEvents(); // Or whichever function refreshes your events list
+        }, 1500);
+    })
+    .catch(error => {
+        showMessage('update-event-message', `Error: ${error.message}`, 'error');
+    });
+}
+
+// Helper function to show messages
+function showMessage(elementId, message, type) {
+    const element = document.getElementById(elementId);
+    element.textContent = message;
+    element.className = `message ${type}`;
+}
+
+// Close modal when clicking X
+document.querySelector('.close').addEventListener('click', function() {
+    document.getElementById('update-event-modal').style.display = 'none';
+});
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('update-event-modal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
 
 function renderBooking(booking) {
     // Determine status class and text
@@ -371,3 +619,4 @@ function renderBooking(booking) {
         </div>
     `;
 }
+

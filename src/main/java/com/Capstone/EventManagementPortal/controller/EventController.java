@@ -1,9 +1,12 @@
 package com.Capstone.EventManagementPortal.controller;
 
 import com.Capstone.EventManagementPortal.dto.EventDTO;
+import com.Capstone.EventManagementPortal.dto.EventUpdateDTO;
+import com.Capstone.EventManagementPortal.exception.EventNotFoundException;
 import com.Capstone.EventManagementPortal.model.Event;
 import com.Capstone.EventManagementPortal.security.jwt.JwtUtil;
 import com.Capstone.EventManagementPortal.service.EventService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -41,14 +45,20 @@ public class EventController {
 
     // ✅ Update Event (Only Organizer of the Event)
     @PutMapping("/{id}")
-    public ResponseEntity<EventDTO> updateEvent(@PathVariable Long id, @RequestBody Event eventDetails, Authentication authentication) {
-        Optional<Event> updatedEvent = eventService.updateEvent(id, eventDetails, authentication.getName());
+    public ResponseEntity<?> updateEvent(
+            @PathVariable Long id,
+            @Valid @RequestBody EventUpdateDTO eventDetails,
+            Authentication authentication) {
 
-        return updatedEvent
-                .map(event -> ResponseEntity.ok(new EventDTO(event)))
-                .orElseThrow(() -> new RuntimeException("Event not found or update failed"));
+        try {
+            Event updatedEvent = eventService.updateEvent(id, eventDetails, authentication.getName());
+            return ResponseEntity.ok(new EventDTO(updatedEvent));
+        } catch (EventNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
     }
-
     // ✅ Delete Event (Only Organizer of the Event)
 //    @DeleteMapping("/{id}")
 //    public ResponseEntity<String> deleteEvent(@PathVariable Long id, Authentication authentication) {

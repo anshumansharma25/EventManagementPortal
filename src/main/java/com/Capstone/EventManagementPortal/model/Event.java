@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Future;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "events")
@@ -33,10 +35,14 @@ public class Event {
     @Future(message = "Event date must be in the future")
     private LocalDateTime dateTime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][XXX]")
     public LocalDateTime getDateTime() {
         return dateTime;
     }
+
+    @Getter
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+    private List<Booking> bookings = new ArrayList<>();
 
     @Column(nullable = false)
     private int maxSlots;

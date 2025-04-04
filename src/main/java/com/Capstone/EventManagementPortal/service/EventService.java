@@ -1,6 +1,7 @@
 package com.Capstone.EventManagementPortal.service;
 
 import com.Capstone.EventManagementPortal.dto.EventDTO;
+import com.Capstone.EventManagementPortal.dto.EventUpdateDTO;
 import com.Capstone.EventManagementPortal.model.Event;
 
 import java.util.List;
@@ -10,7 +11,7 @@ public interface EventService {
 
     Event createEvent(Event event, String organizerEmail); // Ensure it takes 2 parameters
 
-    Optional<Event> updateEvent(Long eventId, Event eventDetails, String organizerEmail);
+    public Event updateEvent(Long eventId, EventUpdateDTO updateDTO, String organizerEmail);
 
     void cancelEvent(Long eventId, String organizerEmail);
 
