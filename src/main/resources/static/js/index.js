@@ -75,18 +75,36 @@ function fetchAvailableEvents() {
             .then(bookings => {
                 const bookedEventIds = bookings.map(b => b.eventId);
 
+                // In fetchAvailableEvents() function, update the event card HTML:
                 eventList.innerHTML = events.map(event => `
                     <div class="event-card">
-                        <h3>${event.title}</h3>
-                        <p class="event-date">📅 ${event.formattedDateTime || 'Date not available'}</p>
-                        <p>📍 ${event.location}</p>
-                        <p>🪑 ${event.availableSlots}/${event.maxSlots} slots available</p>
-                        <button class="book-btn"
-                            onclick="bookEvent(${event.id})"
-                            ${event.availableSlots <= 0 || bookedEventIds.includes(event.id) ? 'disabled' : ''}>
-                            ${event.availableSlots <= 0 ? 'FULL' :
-                             bookedEventIds.includes(event.id) ? 'BOOKED' : 'BOOK'}
-                        </button>
+                        <div class="event-header">
+                            <h3 class="event-title">${escapeHtml(event.title)}</h3>
+                        </div>
+                        <div class="event-body">
+                            <div class="event-details">
+                                <p class="event-detail">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    ${event.formattedDateTime || 'Date not available'}
+                                </p>
+                                <p class="event-detail">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    ${escapeHtml(event.location)}
+                                </p>
+                                <p class="event-detail">
+                                    <i class="fas fa-users"></i>
+                                    ${event.availableSlots}/${event.maxSlots} slots available
+                                </p>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="book-btn"
+                                onclick="bookEvent(${event.id})"
+                                ${event.availableSlots <= 0 || bookedEventIds.includes(event.id) ? 'disabled' : ''}>
+                                ${event.availableSlots <= 0 ? 'FULL' :
+                                 bookedEventIds.includes(event.id) ? 'BOOKED' : 'BOOK NOW'}
+                            </button>
+                        </div>
                     </div>
                 `).join("");
             })
