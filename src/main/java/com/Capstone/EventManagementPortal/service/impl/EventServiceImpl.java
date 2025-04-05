@@ -100,24 +100,30 @@ public class EventServiceImpl implements EventService {
 
     @Transactional
     @Override
-    public void cancelEvent(Long eventId, String organizerEmail) {
+    public void cancelEvent(Long eventId, String userEmail) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new ResourceNotFoundException("Event with ID " + eventId + " not found"));
+                .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        if (!event.getOrganizer().getEmail().equals(organizerEmail)) {
-            throw new UnauthorizedException("You are not authorized to cancel this event");
+        // Debug organizer check
+        System.out.println("Current user: " + userEmail);
+        System.out.println("Event organizer: " + event.getOrganizer().getEmail());
+
+        if (!event.getOrganizer().getEmail().equalsIgnoreCase(userEmail)) {
+            throw new RuntimeException("Only organizer can cancel event");
         }
 
+        // Update event
         event.setCancelled(true);
+        event.setAvailableSlots(0);
         eventRepository.save(event);
 
-        List<Booking> bookings = bookingRepository.findByEventId(eventId);
-        for (Booking booking : bookings) {
-            booking.setCancelled(true);
-            booking.setStatus(BookingStatus.Event_cancelled);
-            bookingRepository.save(booking);
-        }
+        // Update bookings using enum
+        bookingRepository.updateBookingsForCancelledEvent(
+                eventId,
+                BookingStatus.Event_cancelled  // Pass enum value directly
+        );
     }
+
 
     @Override
     public List<Event> getAllEvents() {

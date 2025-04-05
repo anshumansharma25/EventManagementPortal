@@ -66,15 +66,31 @@ public class EventController {
 //        return ResponseEntity.ok("Event deleted successfully.");
 //    }
 
-    @DeleteMapping("/{eventId}")
     @PreAuthorize("hasRole('ORGANIZER')")
-    public ResponseEntity<String> cancelEvent(
+    @DeleteMapping("/{eventId}")
+    public ResponseEntity<?> cancelEvent(
             @PathVariable Long eventId,
-            Authentication authentication
-    ) {
-        eventService.cancelEvent(eventId, authentication.getName());
-        return ResponseEntity.ok("Event and all associated bookings cancelled");
+            Authentication authentication) {
+
+        try {
+            String userEmail = ((UserDetails) authentication.getPrincipal()).getUsername();
+            eventService.cancelEvent(eventId, userEmail);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Event cancelled successfully",
+                    "eventId", eventId,
+                    "isCancelled", true
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "error", "Cancellation failed",
+                            "message", e.getMessage()
+                    ));
+        }
     }
+
 
 
     @GetMapping
