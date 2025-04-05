@@ -1,6 +1,7 @@
 package com.Capstone.EventManagementPortal.dto;
 
 import com.Capstone.EventManagementPortal.model.Event;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,9 @@ public class EventDTO {
     @Getter
     private int availableSlots;
     private String organizerEmail;
+    @Getter
+    @JsonProperty("isCancelled")
+    private boolean isCancelled;
 
     public EventDTO(Event event) {
         this.id = event.getId();
@@ -39,6 +43,7 @@ public class EventDTO {
         this.availableSlots = event.getAvailableSlots();
         this.organizerEmail = event.getOrganizer().getEmail();
         this.formattedDateTime = formatDateTime(event.getDateTime());
+        this.isCancelled = event.getIsCancelled();
     }
     private String formatDateTime(LocalDateTime dateTime) {
         if (dateTime == null) return "Date not set";
