@@ -303,7 +303,7 @@ async function fetchBookedEvents(forceRefresh = false) {
 
         // Render bookings with all details
         eventList.innerHTML = bookings.map(booking => {
-            const isCancelled = booking.status === 'Event_cancelled';
+            const isCancelled = booking.eventCancelled;
             const eventDate = booking.eventDate ? new Date(booking.eventDate) : null;
             const formattedDate = eventDate ?
                 eventDate.toLocaleDateString('en-US', {

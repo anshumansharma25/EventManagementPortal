@@ -28,9 +28,8 @@ public class BookingResponseDTO {
     }
 
     public BookingResponseDTO(Booking booking) {
-        // ... other mappings ...
-        this.isEventCancelled = booking.getStatus() == BookingStatus.Event_cancelled;
-        this.statusDisplay =  booking.getStatus().toString();
+        this.isEventCancelled = booking.getEvent().getIsCancelled();
+        this.statusDisplay = isEventCancelled ? "EVENT CANCELLED" : "CONFIRMED";
     }
     public boolean isEventCancelled() {
         return isEventCancelled;

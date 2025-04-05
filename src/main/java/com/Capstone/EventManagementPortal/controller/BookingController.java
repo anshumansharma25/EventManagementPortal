@@ -130,6 +130,14 @@ public class BookingController {
         dto.setLocation(booking.getEvent().getLocation());
         dto.setBookingTime(booking.getBookingTime());
         dto.setBookingStatus(booking.getStatus());
+        dto.setEventCancelled(booking.getEvent().getIsCancelled());
+        if (booking.getEvent().getIsCancelled()) {
+            dto.setStatusDisplay("EVENT CANCELLED");
+        } else if (booking.getStatus() != null) {
+            dto.setStatusDisplay(booking.getStatus().toString());
+        } else {
+            dto.setStatusDisplay("UNKNOWN STATUS");
+        }
         return dto;
     }
 }
