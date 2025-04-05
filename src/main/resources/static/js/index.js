@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("userRole");
 
@@ -25,13 +25,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Logout
     document.getElementById("logout-btn").style.display = token ? "block" : "none";
-    document.getElementById("logout-btn").addEventListener("click", function () {
+    document.getElementById("logout-btn").addEventListener("click", function() {
         localStorage.clear();
         window.location.reload();
     });
 
     // Event creation
-    document.getElementById("event-form")?.addEventListener("submit", function (event) {
+    document.getElementById("event-form")?.addEventListener("submit", function(event) {
         event.preventDefault();
         createEvent();
     });
@@ -52,7 +52,7 @@ async function getEventDetails(eventId) {
 }
 
 function generateEventDetails(event) {
-return `
+    return `
 <p class="event-detail">
 <i class="fas fa-calendar-alt"></i>
 ${formatDate(event.dateTime)}
@@ -70,7 +70,7 @@ ${event.availableSlots}/${event.maxSlots} slots
 
 function generateEventActions(event) {
     const isCancelled = ['EVENT_CANCELLED', 'Event_cancelled'].includes(event.status) ||
-                       event.isCancelled === true;
+        event.isCancelled === true;
 
     return `
         <button class="update-btn ${isCancelled ? 'disabled-btn' : ''}"
@@ -131,17 +131,19 @@ function fetchAvailableEvents() {
         .then(events => {
             // Then fetch user's bookings to check which events are booked
             fetch("/api/bookings/user", {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-            })
-            .then(async bookingsResponse => {
-                if (!bookingsResponse.ok) throw new Error(await bookingsResponse.text());
-                return bookingsResponse.json();
-            })
-            .then(bookings => {
-                const bookedEventIds = bookings.map(b => b.eventId);
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                    }
+                })
+                .then(async bookingsResponse => {
+                    if (!bookingsResponse.ok) throw new Error(await bookingsResponse.text());
+                    return bookingsResponse.json();
+                })
+                .then(bookings => {
+                    const bookedEventIds = bookings.map(b => b.eventId);
 
-                // In fetchAvailableEvents() function, update the event card HTML:
-                eventList.innerHTML = events.map(event => `
+                    // In fetchAvailableEvents() function, update the event card HTML:
+                    eventList.innerHTML = events.map(event => `
                     <div class="event-card">
                         <div class="event-header">
                             <h3 class="event-title">${escapeHtml(event.title)}</h3>
@@ -172,11 +174,11 @@ function fetchAvailableEvents() {
                         </div>
                     </div>
                 `).join("");
-            })
-            .catch(error => {
-                console.error("Error loading bookings:", error);
-                // Still show events even if bookings failed to load
-                eventList.innerHTML = events.map(event => `
+                })
+                .catch(error => {
+                    console.error("Error loading bookings:", error);
+                    // Still show events even if bookings failed to load
+                    eventList.innerHTML = events.map(event => `
                     <div class="event-card">
                         <h3>${event.title}</h3>
                         <p class="event-date">📅 ${event.formattedDateTime || 'Date not available'}</p>
@@ -189,7 +191,7 @@ function fetchAvailableEvents() {
                         </button>
                     </div>
                 `).join("");
-            });
+                });
         })
         .catch(error => {
             console.error("Error loading events:", error);
@@ -197,43 +199,93 @@ function fetchAvailableEvents() {
         });
 }
 
-async function fetchBookedEvents(forceRefresh = false) {
-const eventList = document.getElementById("booked-events");
-if (!eventList) return;
+//async function bookEvent(eventId) {
+//    const bookButton = document.querySelector(`.event-card[data-event-id="${eventId}"] .book-btn`);
+//    if (!bookButton) return;
+//
+//    // Disable button immediately to prevent multiple clicks
+//    bookButton.disabled = true;
+//    bookButton.textContent = "Processing...";
+//
+//    try {
+//        const response = await fetch("/api/bookings/${eventId}", {
+//            method: "POST",
+//            headers: {
+//                "Content-Type": "application/json",
+//                "Authorization": `Bearer ${localStorage.getItem("token")}`
+//            },
+//            body: JSON.stringify({ eventId })
+//        });
+//
+//        if (!response.ok) {
+//            const error = await response.json().catch(() => null);
+//            throw new Error(error?.message || "Booking failed");
+//        }
+//
+//        // Update the button to show booked status
+//        bookButton.textContent = "BOOKED";
+//
+//        // Refresh the booked events list
+//        fetchBookedEvents(true);
+//
+//        // Show success message
+//        showMessage("booking-message", "Event booked successfully!", "success");
+//    } catch (error) {
+//        console.error("Booking error:", error);
+//        // Re-enable the button if booking fails
+//        bookButton.disabled = false;
+//        bookButton.textContent = "BOOK NOW";
+//        showMessage("booking-message", `Booking failed: ${error.message}`, "error");
+//    }
+//}
 
-try {
-const url = `/api/bookings/user${forceRefresh ? `?refresh=${Date.now()}` : ''}`;
-const response = await fetch(url, {
-headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-});
+async function bookEvent(eventId) {
+    const messageElement = document.getElementById("booking-message");
+    if (!messageElement) {
+        console.error("Error: Could not find booking-message element");
+        return;
+    }
 
-if (!response.ok) throw new Error(await response.text());
+    try {
+        // Clear previous messages and set loading state
+        messageElement.textContent = "Processing booking...";
+        messageElement.style.color = "blue";
+        messageElement.style.display = "block";
 
-const bookings = await response.json();
-console.log('Bookings Data:', bookings); // Debugging
+        const response = await fetch("/api/bookings", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+            body: JSON.stringify({ eventId })
+        });
 
-eventList.innerHTML = bookings.map(booking => {
-const event = {
-...booking,
-id: booking.eventId,
-status: booking.eventStatus // Ensure consistent property name
-};
-eventCache.set(booking.eventId, event);
-return generateBookingCard(booking);
-}).join('');
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: "Booking failed" }));
+            throw new Error(error.message);
+        }
 
-} catch (error) {
-eventList.innerHTML = `
-<div class="error-state">
-<i class="fas fa-exclamation-triangle"></i>
-<p>Failed to load bookings</p>
-<p class="error-detail">${escapeHtml(error.message)}</p>
-<button onclick="fetchBookedEvents()" class="retry-btn">
-<i class="fas fa-sync-alt"></i> Try Again
-</button>
-</div>
-`;
-}
+        const bookingData = await response.json();
+
+        // Show success message
+        messageElement.textContent = "✓ Booking successful!";
+        messageElement.style.color = "green";
+
+        // Hide message after 3 seconds
+        setTimeout(() => {
+            messageElement.style.display = "none";
+        }, 3000);
+
+        // Refresh both available and booked events
+        fetchAvailableEvents();
+        fetchBookedEvents();
+
+    } catch (error) {
+        messageElement.textContent = `✗ ${error.message}`;
+        messageElement.style.color = "red";
+        console.error("Booking error:", error);
+    }
 }
 
 
@@ -351,13 +403,15 @@ async function fetchOrganizerEvents(forceRefresh = false) {
     try {
         const url = `/api/events/organizer${forceRefresh ? `?refresh=${Date.now()}` : ''}`;
         const response = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
         });
 
         if (!response.ok) throw new Error(await response.text());
 
         const events = await response.json();
-        console.log('Organizer Events Data:', events);  // Debugging
+        console.log('Organizer Events Data:', events); // Debugging
 
         eventList.innerHTML = events.map(event => {
             // Clear cached version if exists
@@ -400,7 +454,7 @@ function escapeHtml(unsafe) {
         '>': '&gt;',
         '"': '&quot;',
         "'": '&#39;'
-    }[match])) || '';
+    } [match])) || '';
 }
 
 function createEvent() {
@@ -488,32 +542,34 @@ function createEvent() {
 
         // API call
         fetch("/api/events/create", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            },
-            body: JSON.stringify(eventDetails)
-        })
-        .then(async response => {
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({ message: "Event creation failed" }));
-                throw new Error(error.message || "Unknown error occurred");
-            }
-            return response.json();
-        })
-        .then(() => {
-            if (messageElement) {
-                messageElement.textContent = "✓ Event created successfully!";
-                messageElement.style.color = "green";
-            }
-            fetchOrganizerEvents();
-            form.reset();
-        })
-        .catch(error => {
-            showError(messageElement, error.message);
-            console.error("Event creation error:", error);
-        });
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                },
+                body: JSON.stringify(eventDetails)
+            })
+            .then(async response => {
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({
+                        message: "Event creation failed"
+                    }));
+                    throw new Error(error.message || "Unknown error occurred");
+                }
+                return response.json();
+            })
+            .then(() => {
+                if (messageElement) {
+                    messageElement.textContent = "✓ Event created successfully!";
+                    messageElement.style.color = "green";
+                }
+                fetchOrganizerEvents();
+                form.reset();
+            })
+            .catch(error => {
+                showError(messageElement, error.message);
+                console.error("Event creation error:", error);
+            });
 
     } catch (error) {
         showError(messageElement, error.message);
@@ -524,36 +580,36 @@ function createEvent() {
 // Open modal with event data
 function openUpdateModal(eventId) {
     fetch(`/api/events/${eventId}`, {
-        headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Failed to fetch event');
-        return response.json();
-    })
-    .then(event => {
-        document.getElementById('update-event-id').value = event.id;
-        document.getElementById('update-event-title').value = event.title;
-        document.getElementById('update-event-description').value = event.description;
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to fetch event');
+            return response.json();
+        })
+        .then(event => {
+            document.getElementById('update-event-id').value = event.id;
+            document.getElementById('update-event-title').value = event.title;
+            document.getElementById('update-event-description').value = event.description;
 
-        if (event.dateTime) {
-            const date = new Date(event.dateTime);
-            document.getElementById('update-event-date').valueAsDate = date;
-            document.getElementById('update-event-time').value =
-                `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-        }
+            if (event.dateTime) {
+                const date = new Date(event.dateTime);
+                document.getElementById('update-event-date').valueAsDate = date;
+                document.getElementById('update-event-time').value =
+                    `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+            }
 
-        document.getElementById('update-event-capacity').value = event.maxSlots;
-        document.getElementById('update-event-location').value = event.location;
-        document.getElementById('update-event-category').value = event.category;
+            document.getElementById('update-event-capacity').value = event.maxSlots;
+            document.getElementById('update-event-location').value = event.location;
+            document.getElementById('update-event-category').value = event.category;
 
-        // Show modal
-        document.getElementById('update-event-modal').style.display = 'block';
-    })
-    .catch(error => {
-        showMessage('update-event-message', `Error: ${error.message}`, 'error');
-    });
+            // Show modal
+            document.getElementById('update-event-modal').style.display = 'block';
+        })
+        .catch(error => {
+            showMessage('update-event-message', `Error: ${error.message}`, 'error');
+        });
 }
 
 // Handle form submission
@@ -585,31 +641,31 @@ function updateEvent() {
     showMessage('update-event-message', 'Updating event...', 'info');
 
     fetch(`/api/events/${eventId}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify(eventData)
-    })
-    .then(async response => {
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.error || 'Update failed');
-        }
-        return data;
-    })
-    .then(updatedEvent => {
-        showMessage('update-event-message', 'Event updated successfully!', 'success');
-        // Refresh events list and close modal after delay
-        setTimeout(() => {
-            document.getElementById('update-event-modal').style.display = 'none';
-            fetchOrganizerEvents(); // Or whichever function refreshes your events list
-        }, 1500);
-    })
-    .catch(error => {
-        showMessage('update-event-message', `Error: ${error.message}`, 'error');
-    });
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+            body: JSON.stringify(eventData)
+        })
+        .then(async response => {
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Update failed');
+            }
+            return data;
+        })
+        .then(updatedEvent => {
+            showMessage('update-event-message', 'Event updated successfully!', 'success');
+            // Refresh events list and close modal after delay
+            setTimeout(() => {
+                document.getElementById('update-event-modal').style.display = 'none';
+                fetchOrganizerEvents(); // Or whichever function refreshes your events list
+            }, 1500);
+        })
+        .catch(error => {
+            showMessage('update-event-message', `Error: ${error.message}`, 'error');
+        });
 }
 
 // Helper function to show messages
@@ -646,11 +702,11 @@ function renderBooking(booking) {
     // Determine status class and text
     const isCancelled = booking.status === 'Event_cancelled' || booking.isCancelled;
     const statusClass = isCancelled ? 'status-cancelled' : 'status-confirmed';
-    const statusText = booking.status === 'Event_cancelled'
-        ? 'Event Cancelled'
-        : booking.isCancelled
-            ? 'Booking Cancelled'
-            : 'Confirmed';
+    const statusText = booking.status === 'Event_cancelled' ?
+        'Event Cancelled' :
+        booking.isCancelled ?
+        'Booking Cancelled' :
+        'Confirmed';
 
     // Create booking card HTML
     return `
@@ -691,7 +747,9 @@ async function cancelEvent() {
 
         const response = await fetch(`/api/events/${currentEventIdToCancel}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
         });
 
         if (!response.ok) {
@@ -725,11 +783,11 @@ document.getElementById('cancel-confirm-btn').addEventListener('click', function
 
 
 function generateOrganizerEventCard(event) {
-const isCancelled = ['EVENT_CANCELLED', 'Event_cancelled'].includes(event.status) ||
-event.isCancelled === true ||
-event.cancelled === true;
+    const isCancelled = ['EVENT_CANCELLED', 'Event_cancelled'].includes(event.status) ||
+        event.isCancelled === true ||
+        event.cancelled === true;
 
-return `
+    return `
 <div class="event-card" data-event-id="${event.id}">
 <div class="event-header">
 <h3 class="event-title">${escapeHtml(event.title)}</h3>
@@ -751,10 +809,10 @@ ${generateEventActions(event)}
 }
 
 function generateBookingCard(booking) {
-const isCancelled = ['EVENT_CANCELLED', 'Event_cancelled'].includes(booking.eventStatus) ||
-booking.isCancelled === true;
+    const isCancelled = ['EVENT_CANCELLED', 'Event_cancelled'].includes(booking.eventStatus) ||
+        booking.isCancelled === true;
 
-return `
+    return `
 <div class="booking-card ${isCancelled ? 'cancelled' : ''}">
 <div class="booking-header">
 <h3>${escapeHtml(booking.eventTitle)}</h3>
