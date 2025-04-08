@@ -1,7 +1,6 @@
 package com.Capstone.EventManagementPortal.service.impl;
 
-import com.Capstone.EventManagementPortal.dto.UserDTO;
-import com.Capstone.EventManagementPortal.exception.EmailAlreadyExistsException;
+import com.Capstone.EventManagementPortal.exception.DuplicateUserException;
 import com.Capstone.EventManagementPortal.exception.UserNotFoundException;
 import com.Capstone.EventManagementPortal.model.User;
 import com.Capstone.EventManagementPortal.repository.UserRepository;
@@ -16,7 +15,6 @@ import org.springframework.web.server.ResponseStatusException;
 import com.Capstone.EventManagementPortal.model.Role;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -33,13 +31,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User registerUser(User user) {
         // Check if email already exists
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new EmailAlreadyExistsException("Email is already in use: " + user.getEmail());
-        }
-
-        // Check if username already exists
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new RuntimeException("Username is already taken: " + user.getUsername());
+        if (userRepository.findByEmail(user.getEmail()).isPresent() ||
+                userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new DuplicateUserException();
         }
 
         // Validate Role
@@ -58,9 +52,6 @@ public class UserServiceImpl implements UserService {
 
         return userRepository.save(user);
     }
-
-
-
 
     @Override
     public User getUserById(Long userId) {

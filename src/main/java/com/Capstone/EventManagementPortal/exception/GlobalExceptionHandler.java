@@ -1,6 +1,5 @@
 package com.Capstone.EventManagementPortal.exception;
 
-import com.Capstone.EventManagementPortal.exception.EmailAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -11,8 +10,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<String> handleEmailAlreadyExists(EmailAlreadyExistsException e) {
+    @ExceptionHandler(DuplicateUserException.class)
+    public ResponseEntity<String> handleEmailAlreadyExists(DuplicateUserException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
     }
 

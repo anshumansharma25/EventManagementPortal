@@ -8,41 +8,34 @@ if (document.getElementById('loginForm')) {
 
         const userData = { email, password };
 
-        const messageElement = document.getElementById('loginMessage');
+        const messageElement = document.getElementById('auth-message');
 
         try {
             // Attempt to get login response
-            const response = await loginUser(userData); // Ensure response is properly returned
-
-            console.log("Login Response:", response); // Log the response to verify the structure
+            const response = await loginUser(userData);
 
             // Check if login was successful and handle response accordingly
             if (response && response.token) {
                 // Store JWT token in localStorage
                 localStorage.setItem('token', response.token);
 
-                const decodedToken = decodeJWT(response.token);
-                console.log("Decoded Token:", decodedToken);
-
                 // Extract and store role
                 const role = decodedToken.role.replace('ROLE_', ''); // Remove 'ROLE_' prefix if present
                 localStorage.setItem('userRole', role);
 
-                console.log("User Role:", role);
-
-                // Redirect based on role
                 window.location.href = 'index.html';
 
             } else {
                 // Handle invalid credentials or failed login
-                messageElement.innerHTML = 'Invalid credentials, please try again.';
-                messageElement.style.color = 'red';
+                 messageElement.textContent = 'Invalid credentials, please try again.';
+                 messageElement.className = 'auth-message error';
+                 messageElement.style.display = 'block';
             }
         } catch (error) {
             // Catch any errors during the login process
             console.error('Login error:', error);
-            messageElement.innerHTML = 'An error occurred. Please try again later.';
-            messageElement.style.color = 'red';
+            messageElement.textContent = error.message || 'An error occurred. Please try again later.';
+            messageElement.style.display = 'block';
         }
     });
 }
@@ -98,9 +91,12 @@ if (document.getElementById('registerForm')) {
 
         const messageElement = document.getElementById('registerMessage');
 
+        messageElement.textContent = '';
+        messageElement.className = 'message';
+
         if (password !== confirmPassword) {
-            messageElement.innerHTML = 'Passwords do not match!';
-            messageElement.style.color = 'red';
+            messageElement.textContent = 'Passwords do not match!';
+            messageElement.className = 'message error';
             return;
         }
 
@@ -108,31 +104,25 @@ if (document.getElementById('registerForm')) {
 
         try {
             const response = await registerUser(userData);
-            console.log("Register Response:", response);  // Log the full response to check its structure
-
             // Check if the response contains the user data, indicating success
             if (response && response.id) {  // Response contains user data
-                messageElement.innerHTML = 'Registration successful! Redirecting to login...';
-                messageElement.style.color = 'green';
-                setTimeout(() => {
-                    window.location.href = 'login.html';  // Redirect to login page
-                }, 2000);
-            } else {
-                // Handle the case where registration failed (unexpected response)
-                messageElement.innerHTML = 'Registration failed, please try again.';
-                messageElement.style.color = 'red';
+                 messageElement.textContent = 'Registration successful! Redirecting to login...';
+                 messageElement.className = 'message success';
+                 setTimeout(() => {
+                    window.location.href = 'login.html';
+                 }, 2000);
             }
         } catch (error) {
-            console.error('Registration error:', error);
-            messageElement.innerHTML = error.message || 'An error occurred. Please try again later.';
-            messageElement.style.color = 'red';
+            // Display the error message from the server
+            messageElement.textContent = error.message || 'Registration failed. Please try again.';
+            messageElement.className = 'message error';
         }
     });
 }
 
 // Function to handle the register API call
 async function registerUser(userData) {
-    try {
+
         const response = await fetch('http://localhost:8080/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -141,15 +131,12 @@ async function registerUser(userData) {
 
         if (!response.ok) {
             const errorText = await response.text();  // Capture the raw error message from response
-            throw new Error(`Registration failed: ${errorText}`);
+            throw new Error(errorText || 'Registration failed');
         }
-
         const data = await response.json();
         return data; // Return the user data as JSON
-    } catch (error) {
-        console.error('Registration error:', error);
-        throw new Error('Network error. Please try again later.');
-    }
+
+    return await response.json()
 }
 
 // Helper function to get JWT token from localStorage
