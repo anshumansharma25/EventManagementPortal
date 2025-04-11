@@ -26,16 +26,25 @@ if (document.getElementById('loginForm')) {
                 window.location.href = 'index.html';
 
             } else {
-                // Handle invalid credentials or failed login
-                 messageElement.textContent = 'Invalid credentials, please try again.';
-                 messageElement.className = 'auth-message error';
-                 messageElement.style.display = 'block';
+                messageElement.textContent = 'Invalid credentials, please try again.';
+                messageElement.className = 'auth-message error';
+
+                // Auto-hide after 3 seconds
+                setTimeout(() => {
+                    messageElement.textContent = '';
+                    messageElement.className = 'auth-message'; // Reset to base class
+                }, 3000);
             }
         } catch (error) {
             // Catch any errors during the login process
-            console.error('Login error:', error);
-            messageElement.textContent = error.message || 'An error occurred. Please try again later.';
-            messageElement.style.display = 'block';
+           messageElement.textContent = 'Invalid credentials, please try again.';
+           messageElement.className = 'auth-message error';
+
+           // Auto-hide after 3 seconds
+           setTimeout(() => {
+               messageElement.textContent = '';
+               messageElement.className = 'auth-message'; // Reset to base class
+           }, 3000);
         }
     });
 }
@@ -56,8 +65,14 @@ async function loginUser(userData) {
         const data = await response.json();
         return data; // Return the parsed response
     } catch (error) {
-        console.error('Login error:', error);
-        throw new Error('Login failed. Please try again later.');
+        messageElement.textContent = error.message || 'An error occurred. Please try again later.';
+        messageElement.className = 'auth-message error';
+
+        setTimeout(() => {
+            messageElement.textContent = '';
+            messageElement.className = 'auth-message';
+        }, 3000);
+
     }
 }
 
@@ -95,8 +110,14 @@ if (document.getElementById('registerForm')) {
         messageElement.className = 'message';
 
         if (password !== confirmPassword) {
-            messageElement.textContent = 'Passwords do not match!';
-            messageElement.className = 'message error';
+                messageElement.textContent = 'Passwords do not match!';
+                messageElement.className = 'message error';
+
+                setTimeout(() => {
+                        messageElement.textContent = '';
+                        messageElement.className = 'message';
+                    }, 3000);
+
             return;
         }
 
@@ -116,6 +137,11 @@ if (document.getElementById('registerForm')) {
             // Display the error message from the server
             messageElement.textContent = error.message || 'Registration failed. Please try again.';
             messageElement.className = 'message error';
+
+            setTimeout(() => {
+                    messageElement.textContent = '';
+                    messageElement.className = 'message';
+                }, 3000);
         }
     });
 }
