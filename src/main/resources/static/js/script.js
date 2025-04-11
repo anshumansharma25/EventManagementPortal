@@ -19,13 +19,15 @@ if (document.getElementById('loginForm')) {
                 // Store JWT token in localStorage
                 localStorage.setItem('token', response.token);
 
-                // Extract and store role
-                const role = decodedToken.role.replace('ROLE_', ''); // Remove 'ROLE_' prefix if present
+                // Decode and extract role using your helper
+                const decodedToken = decodeJWT(response.token);
+                const role = decodedToken.role.replace('ROLE_', '');
                 localStorage.setItem('userRole', role);
 
+                // Redirect to home
                 window.location.href = 'index.html';
-
-            } else {
+            }
+            else {
                 messageElement.textContent = 'Invalid credentials, please try again.';
                 messageElement.className = 'auth-message error';
 
