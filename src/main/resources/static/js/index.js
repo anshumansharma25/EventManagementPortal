@@ -128,6 +128,7 @@ function fetchAvailableEvents(forceRefresh = false) {
             return response.json();
         })
         .then(events => {
+            events = sortEvents(events);
             fetch("/api/bookings/user", {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`
@@ -284,8 +285,8 @@ async function fetchBookedEvents(forceRefresh = false) {
             throw new Error(errorData?.message || `Failed to load bookings`);
         }
 
-        const bookings = await response.json();
-
+        let bookings = await response.json();
+        bookings = sortBookings(bookings);
         if (!Array.isArray(bookings)) {
             throw new Error("Invalid bookings data received");
         }
@@ -318,7 +319,7 @@ async function fetchBookedEvents(forceRefresh = false) {
                 <div class="booking-card ${isCancelled ? 'cancelled' : ''}">
                     <div class="booking-header">
                         <h3 class="event-title">${escapeHtml(booking.eventTitle || 'Untitled Event')}</h3>
-                        <div class="status-badge ${isCancelled ? 'event-cancelled' : 'confirmed'}">
+                        <div class="status-badge ${isCancelled ? 'event-cancelled' : 'event-active'}">
                                             ${isCancelled ? 'EVENT CANCELLED' : 'CONFIRMED'}
                                         </div>
                     </div>
@@ -379,8 +380,10 @@ async function fetchOrganizerEvents(forceRefresh = false) {
 
         if (!response.ok) throw new Error(await response.text());
 
-        const events = await response.json();
-        console.log('Organizer Events Data:', events); // Debugging
+        let events = await response.json();
+
+        events = sortEvents(events);
+
 
         eventList.innerHTML = events.map(event => {
             // Clear cached version if exists
@@ -667,34 +670,6 @@ window.addEventListener('click', function(event) {
     }
 });
 
-function renderBooking(booking) {
-    // Determine status class and text
-    const isCancelled = booking.status === 'Event_cancelled' || booking.isCancelled;
-    const statusClass = isCancelled ? 'status-cancelled' : 'status-confirmed';
-    const statusText = booking.status === 'Event_cancelled' ?
-        'Event Cancelled' :
-        booking.isCancelled ?
-        'Booking Cancelled' :
-        'Confirmed';
-
-    // Create booking card HTML
-    return `
-        <div class="booking-card ${statusClass}">
-            <h3>${booking.eventTitle || 'Untitled Event'}</h3>
-            <p class="event-description">${escapeHtml(booking.eventDescription || 'No description available')}</p>
-            <p class="booking-date">📅 ${booking.eventDate ? new Date(booking.eventDate).toLocaleString() : 'Date not available'}</p>
-            <p class="booking-location">📍 ${booking.location || 'Location not specified'}</p>
-            <div class="status-badge ${statusClass}">${statusText}</div>
-
-            ${!isCancelled ? `
-                <button onclick="cancelBooking('${booking.id}')" class="cancel-btn">
-                    Cancel Booking
-                </button>
-            ` : ''}
-        </div>
-    `;
-}
-
 // Global variable to store event ID being canceled
 let currentEventIdToCancel = null;
 
@@ -781,21 +756,24 @@ function generateOrganizerEventCard(event) {
     `;
 }
 
-function generateBookingCard(booking) {
-    const isCancelled = ['EVENT_CANCELLED', 'Event_cancelled'].includes(booking.eventStatus) ||
-        booking.isCancelled === true;
+function sortBookings(bookings) {
+    return bookings.sort((a, b) => {
+        // Cancelled bookings go to the bottom
+        if (a.bookingStatus === 'CANCELLED' && b.bookingStatus !== 'CANCELLED') return 1;
+        if (a.bookingStatus !== 'CANCELLED' && b.bookingStatus === 'CANCELLED') return -1;
 
-    return `
-<div class="booking-card ${isCancelled ? 'cancelled' : ''}">
-<div class="booking-header">
-<h3>${escapeHtml(booking.eventTitle)}</h3>
-<div class="status-badge ${isCancelled ? 'event-cancelled' : 'confirmed'}">
-${isCancelled ? 'EVENT CANCELLED' : 'CONFIRMED'}
-</div>
-</div>
-<div class="booking-body">
-${generateBookingDetails(booking)}
-</div>
-</div>
-`;
+        // If both are same status, show newer ones first
+        return new Date(b.bookingTime) - new Date(a.bookingTime);
+    });
+}
+
+function sortEvents(events) {
+    return events.sort((a, b) => {
+        // Cancelled events go to bottom
+        if ((a.isCancelled || a.cancelled) && !(b.isCancelled || b.cancelled)) return 1;
+        if (!(a.isCancelled || a.cancelled) && (b.isCancelled || b.cancelled)) return -1;
+
+        // If both are cancelled or both are active, sort by newest first
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    });
 }
