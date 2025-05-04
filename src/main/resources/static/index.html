@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Management Platform</title>
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+<header class="header">
+    <h1 class="header-title">Event Management Platform</h1>
+    <nav class="nav">
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a href="#" id="logout-btn" class="nav-link">Logout</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main-content">
+    <!-- Guest Section -->
+    <section id="guest-section" class="section guest-section">
+        <h2 class="section-title">Welcome to the Event Management Platform</h2>
+        <p class="section-description">Discover and book exciting events, or create and manage your own.</p>
+        <div class="auth-buttons">
+            <a href="login.html" class="btn btn-primary">Login</a>
+            <a href="register.html" class="btn btn-secondary">Register</a>
+        </div>
+    </section>
+
+    <!-- Attendee Section -->
+    <section id="attendee-section" class="section attendee-section">
+        <h2 class="section-title">Available Events</h2>
+        <div id="available-events" class="events-grid"></div>
+
+        <h2 class="section-title">Your Booked Events</h2>
+        <div id="booked-events" class="events-grid"></div>
+    </section>
+
+    <!-- Organizer Section -->
+    <section id="organizer-section" class="section organizer-section">
+        <h2 class="section-title">Create New Event</h2>
+        <form id="event-form">
+            <div class="form-group">
+                <label for="event-title">Event Title*</label>
+                <input type="text" id="event-title" required>
+            </div>
+
+            <div class="form-group">
+                <label for="event-description">Description*</label>
+                <textarea id="event-description" required></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="event-date">Date*</label>
+                    <input type="date" id="event-date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="event-time">Time*</label>
+                    <input type="time" id="event-time" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="event-capacity">Max Capacity*</label>
+                <input type="number" id="event-capacity" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="event-location">Location*</label>
+                <input type="text" id="event-location" required>
+            </div>
+
+            <div class="form-group">
+                <label for="event-category">Category*</label>
+                    <input type="text" id="event-category" required>
+            </div>
+
+            <div id="event-message" class="message"></div>
+
+            <button type="submit">Create Event</button>
+        </form>
+
+        <div id="update-event-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Update Event</h2>
+                <form id="update-event-form">
+                    <input type="hidden" id="update-event-id">
+
+                    <div class="form-group">
+                        <label for="update-event-title">Title*</label>
+                        <input type="text" id="update-event-title" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="update-event-description">Description*</label>
+                        <textarea id="update-event-description" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="update-event-date">Date*</label>
+                            <input type="date" id="update-event-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="update-event-time">Time*</label>
+                            <input type="time" id="update-event-time" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="update-event-capacity">Max Capacity*</label>
+                        <input type="number" id="update-event-capacity" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="update-event-location">Location*</label>
+                        <input type="text" id="update-event-location" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="update-event-category">Category*</label>
+                        <input type="text" id="update-event-category" required>
+                    </div>
+
+                    <div id="update-event-message" class="message"></div>
+
+                    <button type="submit" class="btn-primary">Update Event</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="confirmation-modal" class="confirmation-modal">
+            <div class="confirmation-content">
+                <h3>Confirm Cancellation</h3>
+                <p>Are you sure you want to cancel this event? This action cannot be undone.</p>
+                <div class="confirmation-buttons">
+                    <button id="confirm-cancel-btn" class="btn confirm-btn">Yes, Cancel Event</button>
+                    <button id="cancel-confirm-btn" class="btn cancel-btn">No, Keep Event</button>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Your Events</h2>
+        <div id="organizer-events" class="events-grid"></div>
+    </section>
+</main>
+
+<!-- Booking Message -->
+<div id="booking-message" class="booking-message"></div>
+
+<script src="/js/index.js"></script>
+</body>
+</html>
