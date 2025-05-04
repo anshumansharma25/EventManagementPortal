@@ -15,7 +15,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder // ✅ Enables builder pattern
+@Builder
 public class Event {
 
     @Id
