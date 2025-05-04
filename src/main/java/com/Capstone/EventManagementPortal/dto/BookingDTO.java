@@ -21,6 +21,9 @@ public class BookingDTO {
     @NotNull
     private Long userId;
 
+    private String userName;
+    private String userEmail;
+
     private LocalDateTime bookingTime;
 
     // Default Constructor
@@ -31,6 +34,8 @@ public class BookingDTO {
         this.id = booking.getId();
         this.eventId = booking.getEvent().getId();
         this.userId = booking.getUser().getId();
+        this.userName = booking.getUser().getName();
+        this.userEmail = booking.getUser().getEmail();
         this.bookingTime = booking.getBookingTime();
     }
 

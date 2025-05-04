@@ -83,7 +83,97 @@ function generateEventActions(event) {
                 <i class="fas fa-times"></i> Cancel Event
             </button>
         ` : ''}
+        <button class="attendees-btn" onclick="fetchEventAttendees(${event.id})">
+                    <i class="fas fa-users"></i> View Attendees
+        </button>
     `;
+}
+
+function fetchEventAttendees(eventId) {
+    fetch(`/api/bookings/event/${eventId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to fetch attendees');
+        }
+        return response.json();
+    })
+    .then(bookings => {
+        displayAttendeesModal(bookings);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to fetch attendees: ' + error.message);
+    });
+}
+
+function displayAttendeesModal(bookings) {
+    // Create modal container
+    const modal = document.createElement('div');
+    modal.className = 'attendees-modal';
+
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+
+    // Add close button
+    const closeButton = document.createElement('span');
+    closeButton.className = 'close-button';
+    closeButton.innerHTML = '&times;';
+    closeButton.onclick = () => modal.remove();
+
+    // Add title
+    const title = document.createElement('h3');
+    title.textContent = 'Event Attendees';
+
+    // Create table for attendees
+    const table = document.createElement('table');
+    table.className = 'attendees-table';
+
+    // Create table header
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Booking Date</th>
+        </tr>
+    `;
+
+    // Create table body
+    const tbody = document.createElement('tbody');
+    bookings.forEach(booking => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${escapeHtml(booking.userName || 'N/A')}</td>
+            <td>${escapeHtml(booking.userEmail || 'N/A')}</td>
+            <td>${new Date(booking.bookingTime).toLocaleString()}</td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    // Assemble the modal
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    modalContent.appendChild(closeButton);
+    modalContent.appendChild(title);
+    modalContent.appendChild(table);
+    modal.appendChild(modalContent);
+
+    // Add to document
+    document.body.appendChild(modal);
+
+    // Close modal when clicking outside
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    };
 }
 
 function generateBookingDetails(booking) {
