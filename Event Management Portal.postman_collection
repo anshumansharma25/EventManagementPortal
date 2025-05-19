@@ -1,0 +1,382 @@
+{
+	"info": {
+		"_postman_id": "b649dccc-e7f9-4eed-8e96-dfd804c95aae",
+		"name": "Event Management Portal",
+		"description": "Postman collection for all API endpoints of the Event Management Portal.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43257782"
+	},
+	"item": [
+		{
+			"name": "Auth - Register",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{   \n    \"email\": \"random@example.com\",\n    \"password\": \"random\",\n    \"role\": \"ATTENDEE\", \n    \"username\":\"random\", \n    \"name\":\"Random\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/api/auth/register",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Auth - Login",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"organizer@example.com\",\n    \"password\": \"organizer\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/api/auth/login",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Event - Get All Events(Attendee)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BVFRFTkRFRSIsInN1YiI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDc2ODAzODIsImV4cCI6MTc0NzcxNjM4Mn0.QGvaT1SRGXk3MvI14zPZGvTz4UH30zAeUQmXUcwU0js",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <your_token_here>"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/api/events",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Booking - View My Bookings",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BVFRFTkRFRSIsInN1YiI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDc2ODAzODIsImV4cCI6MTc0NzcxNjM4Mn0.QGvaT1SRGXk3MvI14zPZGvTz4UH30zAeUQmXUcwU0js",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <your_token_here>"
+					}
+				],
+				"url": {
+					"raw": "localhost:8080/api/bookings/user",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"bookings",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Booking - Book an Event",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BVFRFTkRFRSIsInN1YiI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDc2ODAzODIsImV4cCI6MTc0NzcxNjM4Mn0.QGvaT1SRGXk3MvI14zPZGvTz4UH30zAeUQmXUcwU0js",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <your_token_here>"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"eventId\": 12\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/api/bookings/user",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"bookings",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Event - Create Event (Organizer)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9PUkdBTklaRVIiLCJzdWIiOiJvcmdhbml6ZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDc2ODEwODQsImV4cCI6MTc0NzcxNzA4NH0.j3h_gnV3JUyedlK8UdRRCkE511Ggkh9EY0T56F8rZGA",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <your_token_here>",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Tech Conference 2025\",\n    \"description\": \"A conference on emerging technologies.\",\n    \"category\": \"Conference\",\n    \"location\": \"New York\",\n    \"dateTime\": \"2025-06-15T10:00:00\",\n    \"maxSlots\": 100,\n    \"availableSlots\":100\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/api/events/create",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"events",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Event - Update Event",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9PUkdBTklaRVIiLCJzdWIiOiJvcmdhbml6ZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDc2ODEwODQsImV4cCI6MTc0NzcxNzA4NH0.j3h_gnV3JUyedlK8UdRRCkE511Ggkh9EY0T56F8rZGA",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <your_token_here>"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Updated Tech Conference 2025\",\n    \"description\": \"Updated descitption of an conference on emerging technologies.\",\n    \"category\": \"Conference\",\n    \"location\": \"New York\",\n    \"dateTime\": \"2025-06-19T10:00:00\",\n    \"maxSlots\": 150,\n    \"availableSlots\":150\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/api/events/16",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"events",
+						"16"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Event - Cancel Event",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9PUkdBTklaRVIiLCJzdWIiOiJvcmdhbml6ZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDc2ODEwODQsImV4cCI6MTc0NzcxNzA4NH0.j3h_gnV3JUyedlK8UdRRCkE511Ggkh9EY0T56F8rZGA",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <your_token_here>"
+					}
+				],
+				"url": {
+					"raw": "localhost:8080/api/events/10",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"events",
+						"10"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Event - Get All Events of an organizer",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9PUkdBTklaRVIiLCJzdWIiOiJvcmdhbml6ZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDc2ODIzNDYsImV4cCI6MTc0NzcxODM0Nn0.Ak7xO2h62XLQG0PuCBYC61eYySYd5Q9F_yu099kiaYQ",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/events/organizer",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"events",
+						"organizer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Booking - Get all bookings of an Event",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9PUkdBTklaRVIiLCJzdWIiOiJvcmdhbml6ZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDc2ODIzNDYsImV4cCI6MTc0NzcxODM0Nn0.Ak7xO2h62XLQG0PuCBYC61eYySYd5Q9F_yu099kiaYQ",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/bookings/event/10",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"bookings",
+						"event",
+						"10"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
