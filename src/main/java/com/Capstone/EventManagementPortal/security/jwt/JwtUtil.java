@@ -21,9 +21,9 @@ public class JwtUtil {
 
     private static final String SECRET_STRING = System.getenv("JWT_SECRET") != null
             ? System.getenv("JWT_SECRET")
-            : "mySuperSecretKeyForJWTSigningWhichShouldBeVeryLong"; // 🔥 Fallback key for testing
+            : "mySuperSecretKeyForJWTSigningWhichShouldBeVeryLong"; //  Fallback key for testing
 
-    private static final Key SECRET_KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes()); // 🔥 Convert to Key
+    private static final Key SECRET_KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes()); // Convert to Key
 
     /**
      * Generate a JWT token with email and role.
@@ -53,7 +53,7 @@ public class JwtUtil {
             throw new IllegalArgumentException("Invalid authentication data.");
         }
 
-        return authentication.getName(); // ✅ Email is the username
+        return authentication.getName(); // Email is the username
     }
 
     /**
@@ -87,23 +87,6 @@ public class JwtUtil {
     public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
-    }
-
-    /**
-      Check if the user is an ADMIN.
-     */
-    public void checkAdminAccess(Authentication authentication) throws AccessDeniedException {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new AccessDeniedException("User not authenticated. Authentication object is null or unauthenticated.");
-        }
-
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        boolean isAdmin = authorities.stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN")  );
-
-        if (!isAdmin) {
-            throw new AccessDeniedException("Access Denied: Admin role required.");
-        }
     }
 
     public void checkOrganizerAccess(Authentication authentication) {
