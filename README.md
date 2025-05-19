@@ -50,7 +50,7 @@ A full-stack Event Management Portal that allows organizers to create and manage
 
 You can test all available API endpoints using our Postman collection:
 
-👉 **[Download Postman Collection](./event-management-portal.postman_collection.json)**
+👉 **[Download Postman Collection](./Event-Management-Portal.postman_collection)**
 
 ### How to Use:
 1. Download the collection file
