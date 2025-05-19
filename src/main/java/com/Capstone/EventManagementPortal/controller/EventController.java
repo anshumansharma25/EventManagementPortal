@@ -41,8 +41,6 @@ public class EventController {
         return ResponseEntity.ok(new EventDTO(createdEvent));
     }
 
-
-
     // ✅ Update Event (Only Organizer of the Event)
     @PutMapping("/{id}")
     public ResponseEntity<?> updateEvent(

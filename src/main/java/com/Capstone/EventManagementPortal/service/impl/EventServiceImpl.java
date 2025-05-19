@@ -44,25 +44,6 @@ public class EventServiceImpl implements EventService {
         return eventRepository.save(event);
     }
 
-//    @Override
-//    public Optional<Event> updateEvent(Long eventId, Event eventDetails, String organizerEmail) {
-//        return eventRepository.findById(eventId).map(event -> {
-//            if (!event.getOrganizer().getEmail().equals(organizerEmail)) {
-//                throw new RuntimeException("Unauthorized: Only the event organizer can update this event.");
-//            }
-//
-//            event.setTitle(eventDetails.getTitle());
-//            event.setDescription(eventDetails.getDescription());
-//            event.setCategory(eventDetails.getCategory());
-//            event.setDateTime(eventDetails.getDateTime());
-//            event.setMaxSlots(eventDetails.getMaxSlots());
-//            event.setAvailableSlots(eventDetails.getAvailableSlots());
-//            event.setLocation(eventDetails.getLocation());
-//
-//            return eventRepository.save(event);
-//        });
-//    }
-
     @Transactional
     @Override
     public Event updateEvent(Long eventId, EventUpdateDTO updateDTO, String organizerEmail) {

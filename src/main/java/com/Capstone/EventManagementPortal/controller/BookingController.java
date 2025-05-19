@@ -111,15 +111,6 @@ public class BookingController {
         return ResponseEntity.ok(bookings);
     }
 
-    // ✅ Cancel Booking (Only the user who booked can cancel)
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> cancelBooking(@PathVariable Long id, Authentication authentication) {
-        String userEmail = jwtUtil.extractUsername(authentication);
-        bookingService.cancelBooking(id, userEmail);
-        return ResponseEntity.ok("Booking cancelled successfully!");
-    }
-
-
     private BookingResponseDTO convertToResponseDTO(Booking booking) {
         BookingResponseDTO dto = new BookingResponseDTO();
         dto.setId(booking.getId());

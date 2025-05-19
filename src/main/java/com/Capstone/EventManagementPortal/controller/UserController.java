@@ -61,29 +61,15 @@ public class UserController {
         }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        User user = userService.getUserById(id);
-        return ResponseEntity.ok(new UserDTO(user));
-    }
-
-    @GetMapping("/email/{email}")
-    public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) {
-        User user = userService.getUserByEmail(email);
-        return ResponseEntity.ok(new UserDTO(user));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody User userDetails, Authentication authentication) {
-        String loggedInEmail = authentication.getName();
-        User updatedUser = userService.updateUser(id, userDetails, loggedInEmail);
-        return ResponseEntity.ok(new UserDTO(updatedUser));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long id, Authentication authentication) {
-        String loggedInEmail = authentication.getName();
-        userService.deleteUser(id, loggedInEmail);
-        return ResponseEntity.ok("User deleted successfully!");
-    }
+//    @GetMapping("/{id}")
+//    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+//        User user = userService.getUserById(id);
+//        return ResponseEntity.ok(new UserDTO(user));
+//    }
+//
+//    @GetMapping("/email/{email}")
+//    public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) {
+//        User user = userService.getUserByEmail(email);
+//        return ResponseEntity.ok(new UserDTO(user));
+//    }
 }

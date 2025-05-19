@@ -53,7 +53,7 @@ public class JwtUtil {
             throw new IllegalArgumentException("Invalid authentication data.");
         }
 
-        return authentication.getName(); // Email is the username
+        return authentication.getName();
     }
 
     /**
@@ -108,13 +108,6 @@ public class JwtUtil {
             throw new SecurityException("Access Denied: Organizers only.");
         }
     }
-
-
-
-
-
-
-
     /**
      * ✅ Extract the role from JWT token.
      */
