@@ -13,7 +13,7 @@ public interface BookingService {
     List<Booking> getAllBookings();
     List<Booking> getBookingsByUserId(Long userId);  // ✅ Added method
     List<Booking> getBookingsByEventId(Long eventId); // ✅ Added method
-    void cancelBooking(Long bookingId, String userEmail);
+    //void cancelBooking(Long bookingId, String userEmail);
     boolean isUserBookingOwner(Long userId, String email);
 
 }

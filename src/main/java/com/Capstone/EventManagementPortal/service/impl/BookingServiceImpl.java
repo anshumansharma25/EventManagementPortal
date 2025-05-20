@@ -63,10 +63,6 @@ public class BookingServiceImpl implements BookingService {
         return savedBooking;
     }
 
-
-
-
-
     // ✅ 2️⃣ Get a booking by ID
     @Override
     public Optional<Booking> getBookingById(Long bookingId) {
@@ -109,27 +105,24 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-
-
-
-    // ✅ 6️⃣ Cancel a booking (Only the user who booked can cancel)
-    @Override
-    @Transactional
-    public void cancelBooking(Long bookingId, String userEmail) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
-
-        if (!booking.getUser().getEmail().equals(userEmail)) {
-            throw new RuntimeException("You can only cancel your own bookings.");
-        }
-
-        booking.setStatus(BookingStatus.Event_cancelled);
-        booking.setCancelled(true);
-        bookingRepository.save(booking);
-
-
-        Event event = booking.getEvent();
-        event.setAvailableSlots(event.getAvailableSlots() + 1);
-        eventRepository.save(event);
-    }
+//    // ✅ 6️⃣ Cancel a booking (Only the user who booked can cancel)
+//    @Override
+//    @Transactional
+//    public void cancelBooking(Long bookingId, String userEmail) {
+//        Booking booking = bookingRepository.findById(bookingId)
+//                .orElseThrow(() -> new RuntimeException("Booking not found"));
+//
+//        if (!booking.getUser().getEmail().equals(userEmail)) {
+//            throw new RuntimeException("You can only cancel your own bookings.");
+//        }
+//
+//        booking.setStatus(BookingStatus.Event_cancelled);
+//        booking.setCancelled(true);
+//        bookingRepository.save(booking);
+//
+//
+//        Event event = booking.getEvent();
+//        event.setAvailableSlots(event.getAvailableSlots() + 1);
+//        eventRepository.save(event);
+//    }
 }

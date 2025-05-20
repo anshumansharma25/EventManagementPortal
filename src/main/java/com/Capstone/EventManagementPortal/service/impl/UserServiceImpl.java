@@ -73,37 +73,37 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
     }
 
-    @Override
-    public User updateUser(Long id, User userDetails, String loggedInEmail) {
-        User loggedInUser = userRepository.findByEmail(loggedInEmail)
-                .orElseThrow(() -> new RuntimeException("Logged-in user not found"));
-
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (loggedInUser.getRole() == Role.ADMIN || loggedInUser.getId().equals(id)) {
-            if (userDetails.getUsername() != null && !userDetails.getUsername().trim().isEmpty()) {
-                user.setUsername(userDetails.getUsername());
-            }
-            if (userDetails.getEmail() != null && !userDetails.getEmail().trim().isEmpty()) {
-                user.setEmail(userDetails.getEmail());
-            }
-            if (userDetails.getRole() != null) {
-                // ✅ Fix: Remove "ROLE_" prefix if it exists before saving
-                String roleName = userDetails.getRole().name().replace("ROLE_", "");
-                user.setRole(Role.valueOf(roleName));
-            }
-            if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
-                user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
-            }
-
-            User updatedUser = userRepository.save(user);
-            System.out.println("✅ User updated successfully: " + updatedUser);
-            return updatedUser;
-        }
-
-        throw new RuntimeException("Unauthorized to update user");
-    }
+//    @Override
+//    public User updateUser(Long id, User userDetails, String loggedInEmail) {
+//        User loggedInUser = userRepository.findByEmail(loggedInEmail)
+//                .orElseThrow(() -> new RuntimeException("Logged-in user not found"));
+//
+//        User user = userRepository.findById(id)
+//                .orElseThrow(() -> new RuntimeException("User not found"));
+//
+//        if (loggedInUser.getRole() == Role.ADMIN || loggedInUser.getId().equals(id)) {
+//            if (userDetails.getUsername() != null && !userDetails.getUsername().trim().isEmpty()) {
+//                user.setUsername(userDetails.getUsername());
+//            }
+//            if (userDetails.getEmail() != null && !userDetails.getEmail().trim().isEmpty()) {
+//                user.setEmail(userDetails.getEmail());
+//            }
+//            if (userDetails.getRole() != null) {
+//                // ✅ Fix: Remove "ROLE_" prefix if it exists before saving
+//                String roleName = userDetails.getRole().name().replace("ROLE_", "");
+//                user.setRole(Role.valueOf(roleName));
+//            }
+//            if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+//                user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+//            }
+//
+//            User updatedUser = userRepository.save(user);
+//            System.out.println("✅ User updated successfully: " + updatedUser);
+//            return updatedUser;
+//        }
+//
+//        throw new RuntimeException("Unauthorized to update user");
+//    }
 
 
     @Override
@@ -113,17 +113,17 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    @Override
-    public void deleteUser(Long id, String loggedInEmail) {
-        User loggedInUser = userRepository.findByEmail(loggedInEmail)
-                .orElseThrow(() -> new RuntimeException("Logged-in user not found"));
-
-        if (loggedInUser.getRole() != Role.ADMIN) {
-            throw new RuntimeException("Unauthorized to delete user");
-        } else if (loggedInUser.getId().equals(id)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Admins cannot delete themselves.");
-        }
-
-        userRepository.deleteById(id);
-    }
+//    @Override
+//    public void deleteUser(Long id, String loggedInEmail) {
+//        User loggedInUser = userRepository.findByEmail(loggedInEmail)
+//                .orElseThrow(() -> new RuntimeException("Logged-in user not found"));
+//
+//        if (loggedInUser.getRole() != Role.ADMIN) {
+//            throw new RuntimeException("Unauthorized to delete user");
+//        } else if (loggedInUser.getId().equals(id)) {
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Admins cannot delete themselves.");
+//        }
+//
+//        userRepository.deleteById(id);
+//    }
 }

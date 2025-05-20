@@ -10,8 +10,8 @@ public interface UserService {
     User getUserById(Long userId);
     List<User> getAllUsers();
 //    Optional<User> getUserByEmail(String email);
-    User updateUser(Long id, User userDetails, String loggedInEmail);  // Added method
-    void deleteUser(Long id, String loggedInEmail);  // Added method
+   // User updateUser(Long id, User userDetails, String loggedInEmail);  // Added method
+    //void deleteUser(Long id, String loggedInEmail);  // Added method
     User findByEmail(String email);  // ✅ Define method in service
     User getUserByEmail(String email);
 

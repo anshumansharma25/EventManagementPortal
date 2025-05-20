@@ -122,8 +122,6 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
     }
 
-
-
     @Override
     public Event getEventById(Long eventId) {
         return eventRepository.findById(eventId)

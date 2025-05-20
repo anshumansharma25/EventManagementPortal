@@ -93,7 +93,6 @@ function getRoleFromToken(token) {
     return role.replace('ROLE_', ''); // Remove 'ROLE_' prefix
 }
 
-
 // Register Form Submission
 if (document.getElementById('registerForm')) {
     document.getElementById('registerForm').addEventListener('submit', async function (e) {

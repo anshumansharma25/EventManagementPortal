@@ -11,7 +11,7 @@ public class RoleConverter implements AttributeConverter<Role, String> {
         if (role == null) {
             return null;
         }
-        // Directly stores values as "ADMIN", "ORGANIZER", etc. without "ROLE_" prefix
+        // Directly stores values as "ATTENDEE", "ORGANIZER", etc. without "ROLE_" prefix
         return role.name();
     }
 
